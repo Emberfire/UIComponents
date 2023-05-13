@@ -26,7 +26,7 @@ export default class AtmosSelect {
         // First, generate the extra elements.
         this.generateMocks();
 
-        this.selectElement["autocompleteInput"] = this.buttonMock;
+        this.selectElement["selectButton"] = this.buttonMock;
         this.buttonMock["selectElement"] = this.selectElement;
 
         // If the hidden select element somehow gets focus, move that focus to the button mock and open the menu.
@@ -93,7 +93,7 @@ export default class AtmosSelect {
         });
 
         // When the select element gets its selected option changed for whatever reason,
-        // also update the selected value in the autocomplete menu.
+        // also update the selected value in the select menu.
         this.listeners.selectElementChangeListener = () => {
             this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
@@ -180,7 +180,7 @@ export default class AtmosSelect {
             new AtmosSelect(selectElement);
         }
 
-        // Place an observer to create a select whenever a select element with an autocomplete toggle gets added.
+        // Place an observer to create a select whenever a select element with a select toggle gets added.
         new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const addedNode of mutation.addedNodes) {
@@ -319,7 +319,7 @@ export default class AtmosSelect {
 
     private generateMocks() {
         let mocksWrapper = Redom.el("div.atmos-select-wrapper");
-        // Insert the autocomplete mock right after the select.
+        // Insert the select mock right after the select.
         this.selectElement.insertAdjacentElement("afterend", mocksWrapper);
         this.mocksWrapper = mocksWrapper;
 
@@ -420,7 +420,7 @@ export default class AtmosSelect {
         this.selectElementOptionsChangeMutationObserver.disconnect();
         this.selectElementAttributesChangeMutationObserver.disconnect();
 
-        // Remove the mocks from the DOM tree and the autocomplete collection.
+        // Remove the mocks from the DOM tree and the select collection.
         this.mocksWrapper.remove();
         this.menuMock.remove();
         AtmosSelect.selects.delete(this.selectElement);
