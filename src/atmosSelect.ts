@@ -1,0 +1,433 @@
+import * as Redom from "redom";
+
+export default class AtmosSelect {
+    private static selects = new Map<HTMLElement, AtmosSelect>();
+
+    private selectElement: HTMLSelectElement;
+    private mocksWrapper: HTMLElement;
+    private buttonMock: HTMLButtonElement;
+    private menuMock: HTMLElement;
+    private selectedMenuItemMock: HTMLLIElement;
+    private showAllOptionsButton: HTMLButtonElement;
+    private selectElementOptionsChangeMutationObserver: MutationObserver;
+    private selectElementAttributesChangeMutationObserver: MutationObserver;
+    private listeners: any = {};
+    private visibleOptions: number;
+    private get hidden() {
+        return this.menuMock.classList.contains("hidden");
+    }
+
+    constructor(selectElement: HTMLSelectElement) {
+        if (AtmosSelect.selects.has(selectElement)) return;
+        this.selectElement = selectElement;
+
+        selectElement.style.display = "none";
+
+        // First, generate the extra elements.
+        this.generateMocks();
+
+        this.selectElement["autocompleteInput"] = this.buttonMock;
+        this.buttonMock["selectElement"] = this.selectElement;
+
+        // If the hidden select element somehow gets focus, move that focus to the button mock and open the menu.
+        this.listeners.selectElementFocusListener = () => {
+            if (!selectElement.disabled) {
+                this.buttonMock.focus();
+            }
+        }
+        selectElement.addEventListener("focus", this.listeners.selectElementFocusListener);
+
+        this.buttonMock.addEventListener("click", () => {
+            this.toggle();
+
+            if (!this.hidden) this.positionMenuMock();
+        });
+
+        // Keyboard navigation to match the native select element's feature
+        this.mocksWrapper.addEventListener("keydown", (e) => {
+            if (e.code === "ArrowDown") {
+                e.preventDefault();
+
+                // If the user pressed the down arrow, search the first visible option below the currently selected one
+                // or cycle back to the first visible one.
+                do {
+                    selectElement.selectedIndex++;
+                    if (selectElement.selectedIndex === -1) selectElement.selectedIndex++;
+                } while (selectElement.selectedIndex >= 0 &&
+                (this.menuMock.children[selectElement.selectedIndex].classList.contains("hidden") ||
+                    this.menuMock.children[selectElement.selectedIndex].classList.contains("disabled")))
+
+                if (selectElement.selectedIndex < 0) {
+                    selectElement.selectedIndex = 0;
+                }
+
+                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+            } else if (e.code === "ArrowUp") {
+                e.preventDefault();
+
+                // If the user pressed the up arrow, search the first visible option above the currently selected one
+                // or cycle back to the last visible one.
+                do {
+                    selectElement.selectedIndex -= 1;
+                    if (selectElement.selectedIndex === -1) selectElement.selectedIndex = selectElement.options.length - 1;
+                } while (selectElement.selectedIndex >= 0 &&
+                (this.menuMock.children[selectElement.selectedIndex].classList.contains("hidden") ||
+                    this.menuMock.children[selectElement.selectedIndex].classList.contains("disabled")))
+
+                if (selectElement.selectedIndex < 0) {
+                    selectElement.selectedIndex = selectElement.options.length - 1;
+                }
+
+                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+            } else if (e.code === "Escape") {
+                // Close the option menu on Escape key
+                e.preventDefault();
+                this.hide();
+            } else if (e.code === "Enter") {
+                // Toggle the option menu on Enter key
+                e.preventDefault();
+                this.toggle();
+            } else if (e.code === "Tab") {
+                this.hide()
+            }
+        });
+
+        // When the select element gets its selected option changed for whatever reason,
+        // also update the selected value in the autocomplete menu.
+        this.listeners.selectElementChangeListener = () => {
+            this.updateButtonMock(this.selectElement.selectedOptions[0]?.textContent?.trim());
+            this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
+
+            this.updateMenuMock(this.selectElement.selectedIndex);
+
+            if (!this.visibleOptions) this.hide();
+
+            this.positionMenuMock();
+        };
+        selectElement.addEventListener("change", this.listeners.selectElementChangeListener);
+
+        // When the user clicks on an option in the menu mock, select the option in the select element
+        // and set the input mock value to it.
+        this.menuMock.addEventListener("click", e => {
+            let target = (<HTMLElement>e.target).closest(".atmos-select-menu-item") as HTMLElement;
+            if (!target) return;
+
+            if (target.classList.contains("disabled")) return;
+
+            let selectedIndex = [ ...this.menuMock.children ].indexOf(target);
+
+            this.updateSelectElement(selectedIndex);
+
+            this.updateButtonMock(this.selectElement.selectedOptions[0]?.textContent?.trim());
+            this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
+
+            this.updateMenuMock(selectedIndex);
+
+            this.selectElement.dispatchEvent(new CustomEvent("select.atmos-select", { bubbles: true }));
+        });
+
+        // When the user clicks somewhere else, close the menu mock.
+        this.listeners.documentClickListener = (e) => {
+            let target = e.target as HTMLElement;
+            if (target.closest(".atmos-select-menu") === this.menuMock) {
+                // Don't close the menu if the user clicks inside of it.
+                // Disabled for now until multiselect is implemented.
+                // return;
+                if (target.closest(".atmos-select-menu-item.disabled")) {
+                    // Don't close the menu if the user clicks on a disabled option.
+                    return;
+                }
+            } else if (target.closest(".atmos-select-button") === this.buttonMock) {
+                // Don't close the menu if the user clicks on the input mock.
+                return;
+            }
+
+            this.hide();
+        }
+        document.addEventListener("click", this.listeners.documentClickListener);
+
+        // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
+        this.listeners.documentResizeListener = () => this.positionMenuMock();
+        window.addEventListener("resize", this.listeners.documentResizeListener);
+
+        // When the user clicks on any of the hidden select element's labels, focus the input mock instead.
+        this.listeners.labelClickListener = (e) => {
+            e.stopPropagation();
+            this.buttonMock.focus();
+        }
+        for (const label of selectElement.labels) {
+            label?.addEventListener("click", this.listeners.labelClickListener);
+        }
+
+        // Watch the select element's options for additions or removals, mirroring the structure every time.
+        this.selectElementOptionsChangeMutationObserver = new MutationObserver(() => {
+            this.generateOptionMocks();
+        });
+        this.selectElementOptionsChangeMutationObserver.observe(selectElement, {
+            childList: true
+        });
+
+        // Watch the select element's attributes for changes, mirroring their state in the input mock.
+        this.selectElementAttributesChangeMutationObserver = new MutationObserver(() => {
+            this.buttonMock.disabled = selectElement.disabled;
+        });
+        this.selectElementAttributesChangeMutationObserver.observe(selectElement, {
+            attributes: true,
+            attributeFilter: [ "disabled" ]
+        });
+    }
+
+    static init() {
+        let selectElements = document.querySelectorAll<HTMLSelectElement>("[data-toggle='select']");
+
+        // Autodetect and create a select component for each select element found.
+        for (const selectElement of selectElements) {
+            new AtmosSelect(selectElement);
+        }
+
+        // Place an observer to create a select whenever a select element with an autocomplete toggle gets added.
+        new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const addedNode of mutation.addedNodes) {
+                    if (!(addedNode instanceof HTMLSelectElement) || addedNode.dataset.toggle !== "select") continue;
+
+                    // Skip initialization if component has already been initialized before detection.
+                    if (!this.selects.has(addedNode)) new AtmosSelect(addedNode);
+                }
+
+                for (const removedNode of mutation.removedNodes) {
+                    if (!(removedNode instanceof HTMLElement) || removedNode.dataset.toggle !== "select") continue;
+
+                    AtmosSelect.get(removedNode)?.destroy();
+                }
+            }
+        }).observe(document, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    static get(selectElement) {
+        return this.selects.get(selectElement);
+    }
+
+    hide() {
+        this.menuMock.classList.add("hidden");
+
+        this.menuMock.dispatchEvent(new CustomEvent("hide.select"));
+    }
+
+    show() {
+        if (!this.visibleOptions) return;
+
+        // First hide all other menu mocks, since only one needs to be shown at one time.
+        for (const [ _, select ] of AtmosSelect.selects) {
+            if (!select.hidden) select.hide();
+        }
+
+        this.menuMock.classList.remove("hidden");
+
+        this.menuMock.dispatchEvent(new CustomEvent("show.atmos-select"));
+    }
+
+    toggle() {
+        if (!this.visibleOptions && this.hidden) return;
+
+        this.menuMock.classList.toggle("hidden");
+        this.positionMenuMock();
+
+        let customEvent = this.menuMock.classList.contains("hidden")
+            ? new CustomEvent("hide.atmos-select")
+            : new CustomEvent("show.atmos-select");
+        this.menuMock.dispatchEvent(customEvent);
+    }
+
+    private updateSelectElement(selectedOptionIndex: number) {
+        this.selectElement.selectedIndex = selectedOptionIndex;
+    }
+
+    private updateButtonMock(value: string) {
+        if (!value === null || value === undefined) value = "";
+
+        this.buttonMock.querySelector(".atmos-select-current-selection").textContent = value?.toString();
+    }
+
+    private updateButtonMockTitle(value: string) {
+        if (!value === null || value === undefined) value = "";
+
+        this.buttonMock.title = value?.toString();
+    }
+
+    private updateMenuMock(selectedOptionIndex: number) {
+        console.debug(`Update menu's options.`);
+
+        if (selectedOptionIndex >= 0) {
+            // Find the option mock that matches the select element's selected option.
+            let newOption = (<HTMLLIElement>this.menuMock.children[selectedOptionIndex]);
+
+            if (this.selectedMenuItemMock !== newOption) {
+                // Remove the currently selected option mock.
+                this.selectedMenuItemMock?.classList.remove("selected");
+                newOption.classList.add("selected");
+
+                // Scroll the dropdown mock to the selected option mock.
+                newOption.scrollIntoView({ block: "nearest" });
+
+                this.selectedMenuItemMock = newOption;
+            }
+        } else {
+            this.selectedMenuItemMock?.classList.remove("selected");
+            this.selectedMenuItemMock = null;
+        }
+    }
+
+    private positionMenuMock() {
+        this.menuMock.style.removeProperty("height");
+
+        let buttonRect = this.buttonMock.getBoundingClientRect();
+        let menuRect = this.menuMock.getBoundingClientRect();
+
+        if (buttonRect.bottom + menuRect.height + 4 > window.innerHeight && buttonRect.top - 4 < menuRect.height) {
+            // If the menu can't be positioned either on top or bottom of the button mock,
+            // position it below the input and limit its height.
+            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY}px`;
+            this.menuMock.style.height = `${window.innerHeight - buttonRect.bottom - 4}px`;
+        } else if (buttonRect.bottom + menuRect.height + 4 > window.innerHeight) {
+            // If there isn't enough space to position the menu below the button mock, position it above it instead.
+            this.menuMock.style.top = `${buttonRect.top - menuRect.height - 8 + window.scrollY}px`;
+        } else {
+            // Else position the menu directly below the button element, with a little margin.
+            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY}px`;
+        }
+
+        console.debug(`Positioning menu to ${buttonRect.width}, ${buttonRect.left}.`);
+        // Set the option menu's width to the button's width.
+        this.menuMock.style.minWidth = `${buttonRect.width}px`;
+        this.menuMock.style.left = `${buttonRect.left}px`;
+    }
+
+    private generateMocks() {
+        let mocksWrapper = Redom.el("div.atmos-select-wrapper");
+        // Insert the autocomplete mock right after the select.
+        this.selectElement.insertAdjacentElement("afterend", mocksWrapper);
+        this.mocksWrapper = mocksWrapper;
+
+        let buttonMock = Redom.el("button.atmos-select-button",
+            Redom.el("span.atmos-select-current-selection", this.selectElement.dataset.placeholder ?? ""),
+            {
+                type: "button",
+                disabled: this.selectElement.disabled,
+            }) as HTMLButtonElement;
+        Redom.mount(mocksWrapper, buttonMock);
+        this.buttonMock = buttonMock;
+        if (this.selectElement.selectedIndex >= 0) {
+            this.updateButtonMock(this.selectElement.selectedOptions[0]?.textContent?.trim());
+        }
+
+        // Create the dropdown and insert it at the end of the body element,
+        // since if placed in an overflowing container it might become partly hidden.
+        let menuMock = Redom.el("ul.atmos-select-menu.hidden") as HTMLUListElement;
+        Redom.mount(document.body, menuMock);
+        this.menuMock = menuMock;
+
+        // Create a button that shows all options when clicked, positioned middle right of the input mock.
+        let showAllOptionsButton = Redom.el("span.atmos-select-menu-toggle", {
+            tabIndex: -1,
+            title: "Show all"
+        }) as HTMLButtonElement;
+        Redom.mount(buttonMock, showAllOptionsButton);
+
+        let selectedTickImage = Redom.el("img.atmos-select-toggle-caret", {
+            src: this.selectElement.dataset.openMenuButtonSrc,
+            alt: "Show all"
+        });
+        this.showAllOptionsButton = showAllOptionsButton;
+        Redom.mount(showAllOptionsButton, selectedTickImage);
+
+        // Apply the custom classes provided by the select element's configuration.
+        if (this.selectElement.dataset.wrapperClass)
+            mocksWrapper.classList.add(this.selectElement.dataset.wrapperClass);
+        if (this.selectElement.dataset.inputClass)
+            buttonMock.classList.add(this.selectElement.dataset.inputClass);
+        if (this.selectElement.dataset.menuClass)
+            menuMock.classList.add(this.selectElement.dataset.menuClass);
+        if (this.selectElement.dataset.showAllButtonClass)
+            this.showAllOptionsButton.classList.add(this.selectElement.dataset.showAllButtonClass);
+
+        // Generate the option elements in the dropdown
+        this.generateOptionMocks();
+    }
+
+    private generateOptionMocks() {
+        Redom.setChildren(this.menuMock, []);
+
+        for (const option of this.selectElement.options) {
+            // Create an option element with its tick box, which will remain hidden until the element is selected.
+            let menuItemMock = Redom.el("li.atmos-select-menu-item",
+                Redom.el("span.atmos-select-menu-item-text", option.textContent), {
+                    title: option.title
+                });
+            Redom.mount(this.menuMock, menuItemMock);
+            if (option.selected) {
+                menuItemMock.classList.add("selected");
+                this.selectedMenuItemMock = menuItemMock as HTMLLIElement;
+            }
+
+            if (option.disabled) {
+                menuItemMock.classList.add("disabled");
+            }
+
+            let selectedTickImage = Redom.el("img.atmos-select-menu-item-tick", {
+                alt: option.textContent || option.value ? "Selected" : "",
+            }) as HTMLImageElement;
+            Redom.mount(menuItemMock, selectedTickImage);
+            // If a selected image source is provided, create an image for selected options.
+            if (this.selectElement.dataset.selectedItemTickSrc) {
+                selectedTickImage.src = this.selectElement.dataset.selectedItemTickSrc;
+            }
+
+            // Apply the custom class provided by the select element's configuration.
+            if (this.selectElement.dataset.menuItemClass)
+                menuItemMock.classList.add(this.selectElement.dataset.menuItemClass);
+        }
+
+        this.visibleOptions = this.selectElement.options.length;
+    }
+
+    destroy() {
+        // First remove all associated event listeners on elements that will remain.
+        // The rest of the listeners will be removed when we remove the mocks.
+        this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
+        this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
+        document.removeEventListener("click", this.listeners.documentClickListener);
+        document.removeEventListener("resize", this.listeners.documentResizeListener);
+        for (const label of this.selectElement.labels) {
+            label.removeEventListener("click", this.listeners.labelClickListener);
+        }
+
+        // Disconnect all associated mutation observers.
+        this.selectElementOptionsChangeMutationObserver.disconnect();
+        this.selectElementAttributesChangeMutationObserver.disconnect();
+
+        // Remove the mocks from the DOM tree and the autocomplete collection.
+        this.mocksWrapper.remove();
+        this.menuMock.remove();
+        AtmosSelect.selects.delete(this.selectElement);
+
+        // Show the original select element
+        this.selectElement.style.removeProperty("display");
+
+        this.selectElement = null;
+        this.mocksWrapper = null;
+        this.buttonMock = null;
+        this.menuMock = null;
+        this.selectedMenuItemMock = null;
+        this.showAllOptionsButton = null;
+        this.selectElementOptionsChangeMutationObserver = null;
+        this.selectElementAttributesChangeMutationObserver = null;
+        this.listeners = null;
+    }
+}
+
+window["AtmosSelect"] = AtmosSelect;
+AtmosSelect.init();

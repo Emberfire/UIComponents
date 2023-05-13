@@ -2,16 +2,18 @@
     display: none !important;
 }
 
-.autocomplete-wrapper {
+.atmos-select-wrapper {
     position: relative;
 }
 
-.autocomplete-input {
+.atmos-select-button {
     width: 100%;
     padding-right: 2rem;
+    display: flex;
+    justify-content: space-between;
 }
 
-.autocomplete-menu-toggle {
+.atmos-select-menu-toggle {
     font-size: 10px;
     position: absolute;
     right: 0.5rem;
@@ -19,16 +21,16 @@
     height: 1rem;
 }
 
-.autocomplete-menu-toggle:not(:disabled) {
+.atmos-select-menu-toggle:not(:disabled) {
     cursor: pointer;
 }
 
-.autocomplete-toggle-caret {
+.atmos-select-toggle-caret {
     height: 100%;
     width: auto;
 }
 
-.autocomplete-menu {
+.atmos-select-menu {
     margin-top: .25rem;
     margin-bottom: .25rem;
     position: absolute;
@@ -40,31 +42,31 @@
     cursor: pointer;
 }
 
-.autocomplete-menu-item {
+.atmos-select-menu-item {
     display: flex;
     justify-content: space-between;
     padding: .25rem .5rem;
     align-items: center;
 }
 
-.autocomplete-menu-item.disabled {
+.atmos-select-menu-item.disabled {
     cursor: not-allowed;
     color: #808080;
 }
 
-.autocomplete-menu-item:hover {
+.atmos-select-menu-item:hover {
     background-color: #e6e6e6;
 }
 
-.autocomplete-menu-item.selected {
+.atmos-select-menu-item.selected {
     background-color: #d6d6d6;
 }
 
-.autocomplete-menu-item-tick {
+.atmos-select-menu-item-tick {
     height: 1rem;
     width: auto;
 }
 
-.autocomplete-menu-item:not(.selected) .autocomplete-menu-item-tick {
+.atmos-select-menu-item:not(.selected) .atmos-select-menu-item-tick {
     visibility: hidden;
 }
