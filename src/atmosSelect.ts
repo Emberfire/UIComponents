@@ -13,9 +13,6 @@ export default class AtmosSelect {
     private selectElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
     private visibleOptions: number;
-    private get hidden() {
-        return this.menuMock.classList.contains("hidden");
-    }
 
     constructor(selectElement: HTMLSelectElement) {
         if (AtmosSelect.selects.has(selectElement)) return;
@@ -95,7 +92,7 @@ export default class AtmosSelect {
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the select menu.
         this.listeners.selectElementChangeListener = () => {
-            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
+            this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
             this.updateMenuMock(this.selectElement.selectedIndex);
@@ -118,7 +115,7 @@ export default class AtmosSelect {
 
             this.updateSelectElement(selectedIndex);
 
-            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
+            this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.options[this.selectElement.selectedIndex]?.title);
 
             this.updateMenuMock(selectedIndex);
@@ -170,6 +167,10 @@ export default class AtmosSelect {
             attributes: true,
             attributeFilter: [ "disabled" ]
         });
+    }
+
+    private get hidden() {
+        return this.menuMock.classList.contains("hidden");
     }
 
     static init() {
@@ -237,6 +238,40 @@ export default class AtmosSelect {
         this.menuMock.dispatchEvent(customEvent);
     }
 
+    destroy() {
+        // First remove all associated event listeners on elements that will remain.
+        // The rest of the listeners will be removed when we remove the mocks.
+        this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
+        this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
+        document.removeEventListener("click", this.listeners.documentClickListener);
+        document.removeEventListener("resize", this.listeners.documentResizeListener);
+        for (const label of this.selectElement.labels) {
+            label.removeEventListener("click", this.listeners.labelClickListener);
+        }
+
+        // Disconnect all associated mutation observers.
+        this.selectElementOptionsChangeMutationObserver.disconnect();
+        this.selectElementAttributesChangeMutationObserver.disconnect();
+
+        // Remove the mocks from the DOM tree and the select collection.
+        this.mocksWrapper.remove();
+        this.menuMock.remove();
+        AtmosSelect.selects.delete(this.selectElement);
+
+        // Show the original select element
+        this.selectElement.style.removeProperty("display");
+
+        this.selectElement = null;
+        this.mocksWrapper = null;
+        this.buttonMock = null;
+        this.menuMock = null;
+        this.selectedMenuItemMock = null;
+        this.showAllOptionsButton = null;
+        this.selectElementOptionsChangeMutationObserver = null;
+        this.selectElementAttributesChangeMutationObserver = null;
+        this.listeners = null;
+    }
+
     private updateSelectElement(selectedOptionIndex: number) {
         if (!this.selectElement.multiple) {
             this.selectElement.selectedIndex = selectedOptionIndex;
@@ -252,7 +287,6 @@ export default class AtmosSelect {
 
             this.buttonMock.querySelector(".atmos-select-current-selection").textContent = values?.[0]?.toString();
         } else {
-            
             this.buttonMock.querySelector(".atmos-select-current-selection").textContent =
                 values.length <= 3 ? values.join(", ") || this.selectElement.dataset.placeholder : `${values.length} options selected`;
         }
@@ -332,7 +366,7 @@ export default class AtmosSelect {
         Redom.mount(mocksWrapper, buttonMock);
         this.buttonMock = buttonMock;
         if (this.selectElement.selectedIndex >= 0) {
-            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
+            this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
         }
 
         // Create the dropdown and insert it at the end of the body element,
@@ -403,40 +437,6 @@ export default class AtmosSelect {
         }
 
         this.visibleOptions = this.selectElement.options.length;
-    }
-
-    destroy() {
-        // First remove all associated event listeners on elements that will remain.
-        // The rest of the listeners will be removed when we remove the mocks.
-        this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
-        this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
-        document.removeEventListener("click", this.listeners.documentClickListener);
-        document.removeEventListener("resize", this.listeners.documentResizeListener);
-        for (const label of this.selectElement.labels) {
-            label.removeEventListener("click", this.listeners.labelClickListener);
-        }
-
-        // Disconnect all associated mutation observers.
-        this.selectElementOptionsChangeMutationObserver.disconnect();
-        this.selectElementAttributesChangeMutationObserver.disconnect();
-
-        // Remove the mocks from the DOM tree and the select collection.
-        this.mocksWrapper.remove();
-        this.menuMock.remove();
-        AtmosSelect.selects.delete(this.selectElement);
-
-        // Show the original select element
-        this.selectElement.style.removeProperty("display");
-
-        this.selectElement = null;
-        this.mocksWrapper = null;
-        this.buttonMock = null;
-        this.menuMock = null;
-        this.selectedMenuItemMock = null;
-        this.showAllOptionsButton = null;
-        this.selectElementOptionsChangeMutationObserver = null;
-        this.selectElementAttributesChangeMutationObserver = null;
-        this.listeners = null;
     }
 }
 
