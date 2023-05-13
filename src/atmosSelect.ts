@@ -131,7 +131,7 @@ export default class AtmosSelect {
             let target = e.target as HTMLElement;
             if (target.closest(".atmos-select-menu") === this.menuMock) {
                 // Don't close the menu if the user clicks inside of it.
-                return;
+                if (this.selectElement.multiple) return;
             } else if (target.closest(".atmos-select-button") === this.buttonMock) {
                 // Don't close the menu if the user clicks on the input mock.
                 return;
