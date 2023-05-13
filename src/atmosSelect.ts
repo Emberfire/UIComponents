@@ -95,7 +95,7 @@ export default class AtmosSelect {
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the autocomplete menu.
         this.listeners.selectElementChangeListener = () => {
-            this.updateButtonMock(this.selectElement.selectedOptions[0]?.textContent?.trim());
+            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
             this.updateMenuMock(this.selectElement.selectedIndex);
@@ -118,8 +118,8 @@ export default class AtmosSelect {
 
             this.updateSelectElement(selectedIndex);
 
-            this.updateButtonMock(this.selectElement.selectedOptions[0]?.textContent?.trim());
-            this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
+            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
+            this.updateButtonMockTitle(this.selectElement.options[this.selectElement.selectedIndex]?.title);
 
             this.updateMenuMock(selectedIndex);
 
@@ -131,12 +131,7 @@ export default class AtmosSelect {
             let target = e.target as HTMLElement;
             if (target.closest(".atmos-select-menu") === this.menuMock) {
                 // Don't close the menu if the user clicks inside of it.
-                // Disabled for now until multiselect is implemented.
-                // return;
-                if (target.closest(".atmos-select-menu-item.disabled")) {
-                    // Don't close the menu if the user clicks on a disabled option.
-                    return;
-                }
+                return;
             } else if (target.closest(".atmos-select-button") === this.buttonMock) {
                 // Don't close the menu if the user clicks on the input mock.
                 return;
@@ -243,13 +238,24 @@ export default class AtmosSelect {
     }
 
     private updateSelectElement(selectedOptionIndex: number) {
-        this.selectElement.selectedIndex = selectedOptionIndex;
+        if (!this.selectElement.multiple) {
+            this.selectElement.selectedIndex = selectedOptionIndex;
+        } else {
+            this.selectElement.options[selectedOptionIndex].selected =
+                !this.selectElement.options[selectedOptionIndex].selected;
+        }
     }
 
-    private updateButtonMock(value: string) {
-        if (!value === null || value === undefined) value = "";
+    private updateButtonMock(values: string[]) {
+        if (!this.selectElement.multiple) {
+            if (!values.length || !values[0] === null || values[0] === undefined) values[0] = "";
 
-        this.buttonMock.querySelector(".atmos-select-current-selection").textContent = value?.toString();
+            this.buttonMock.querySelector(".atmos-select-current-selection").textContent = values?.[0]?.toString();
+        } else {
+            
+            this.buttonMock.querySelector(".atmos-select-current-selection").textContent =
+                values.length <= 3 ? values.join(", ") || this.selectElement.dataset.placeholder : `${values.length} options selected`;
+        }
     }
 
     private updateButtonMockTitle(value: string) {
@@ -265,10 +271,15 @@ export default class AtmosSelect {
             // Find the option mock that matches the select element's selected option.
             let newOption = (<HTMLLIElement>this.menuMock.children[selectedOptionIndex]);
 
-            if (this.selectedMenuItemMock !== newOption) {
-                // Remove the currently selected option mock.
-                this.selectedMenuItemMock?.classList.remove("selected");
-                newOption.classList.add("selected");
+            if (this.selectedMenuItemMock !== newOption || this.selectElement.multiple) {
+                if (!this.selectElement.multiple) {
+                    // Remove the currently selected option mock.
+                    this.selectedMenuItemMock?.classList.remove("selected");
+                    newOption.classList.add("selected");
+                } else {
+                    // Toggle the currently selected option mock.
+                    newOption?.classList.toggle("selected");
+                }
 
                 // Scroll the dropdown mock to the selected option mock.
                 newOption.scrollIntoView({ block: "nearest" });
@@ -321,7 +332,7 @@ export default class AtmosSelect {
         Redom.mount(mocksWrapper, buttonMock);
         this.buttonMock = buttonMock;
         if (this.selectElement.selectedIndex >= 0) {
-            this.updateButtonMock(this.selectElement.selectedOptions[0]?.textContent?.trim());
+            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
         }
 
         // Create the dropdown and insert it at the end of the body element,
