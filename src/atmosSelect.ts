@@ -197,7 +197,7 @@ export default class AtmosSelect {
                     toggles.push(...removedNode.querySelectorAll<HTMLSelectElement>("[data-toggle=select]"));
 
                     for (const toggle of toggles) {
-                        AtmosSelect.get(removedNode)?.destroy();
+                        AtmosSelect.get(toggle)?.destroy();
                     }
                 }
             }
