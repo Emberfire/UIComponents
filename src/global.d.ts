@@ -1,7 +1,7 @@
-interface HTMLSelectElement {
-    selectButton: HTMLButtonElement;
+interface HTMLOptionElement {
+    selectMenuOption: HTMLLIElement;
 }
 
-interface HTMLButtonElement {
-    selectElement: HTMLSelectElement;
+interface HTMLLIElement {
+    selectOption: HTMLOptionElement;
 }
