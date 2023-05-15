@@ -185,7 +185,7 @@ export default class AtmosSelect {
 
                     for (const toggle of toggles) {
                         // Skip initialization if component has already been initialized before detection.
-                        if (!this.selects.has(addedNode)) new AtmosSelect(toggle);
+                        if (!this.selects.has(toggle)) new AtmosSelect(toggle);
                     }
                 }
 
