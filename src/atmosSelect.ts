@@ -249,10 +249,10 @@ export default class AtmosSelect {
     destroy() {
         // First remove all associated event listeners on elements that will remain.
         // The rest of the listeners will be removed when we remove the mocks.
-        this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
-        this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
         document.removeEventListener("click", this.listeners.documentClickListener);
         document.removeEventListener("resize", this.listeners.documentResizeListener);
+        this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
+        this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
         for (const label of this.selectElement.labels) {
             label.removeEventListener("click", this.listeners.labelClickListener);
         }
@@ -271,13 +271,14 @@ export default class AtmosSelect {
 
         this.selectElement = null;
         this.mocksWrapper = null;
-        this.buttonMock = null;
         this.menuMock = null;
         this.selectedMenuItemMock = null;
         this.showAllOptionsButton = null;
         this.optionsChangeMutationObserver = null;
         this.selectElementAttributesChangeMutationObserver = null;
         this.listeners = null;
+        this.visibleOptions = null;
+        this.buttonMock = null;
     }
 
     private updateSelectElement(selectedOptionIndex: number) {
