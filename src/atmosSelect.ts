@@ -94,6 +94,8 @@ export default class AtmosSelect {
             if (!this.visibleOptions) this.hide();
 
             this.positionMenuMock();
+
+            this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
         };
         selectElement.addEventListener("change", this.listeners.selectElementChangeListener);
 
@@ -185,6 +187,8 @@ export default class AtmosSelect {
 
                     for (const toggle of toggles) {
                         // Skip initialization if component has already been initialized before detection.
+                        if (this.selects.has(toggle)) continue;
+
                         if (!this.selects.has(toggle)) new AtmosSelect(toggle);
                     }
                 }
