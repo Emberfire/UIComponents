@@ -404,10 +404,9 @@ export default class AtmosSelect {
 
         for (const option of this.selectElement.options) {
             // Create an option element with its tick box, which will remain hidden until the element is selected.
-            let menuItemMock = Redom.el("li.atmos-select-menu-item",
-                Redom.el("span.atmos-select-menu-item-text", option.textContent), {
-                    title: option.title
-                });
+            let menuItemMock = Redom.el("li.atmos-select-menu-item", option.textContent, {
+                title: option.title
+            });
             Redom.mount(this.menuMock, menuItemMock);
 
             menuItemMock["selectOption"] = option;

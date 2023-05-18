@@ -75,6 +75,11 @@ label {
 /*    user-select: none;*/
 /*    padding: 0.5rem 0.75rem;*/
 /*    color: rgb(17 24 39);*/
+/*    display: block;*/
+/*    overflow: hidden;*/
+/*    text-overflow: ellipsis;*/
+/*    white-space: nowrap;*/
+/*    font-weight: 400;*/
 /*}*/
 
 /*.atmos-select-menu-item:hover {*/
@@ -84,12 +89,4 @@ label {
 /*.atmos-select-menu-item.selected {*/
 /*    background-color: rgb(79 70 229);*/
 /*    color: rgb(255, 255, 255);*/
-/*}*/
-
-/*.atmos-select-menu-item-text {*/
-/*    display: block;*/
-/*    overflow: hidden;*/
-/*    text-overflow: ellipsis;*/
-/*    white-space: nowrap;*/
-/*    font-weight: 400;*/
 /*}*/
