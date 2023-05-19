@@ -89,7 +89,7 @@ export default class AtmosSelect {
             this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
-            this.updateMenuMock([...this.selectElement.selectedOptions]);
+            this.updateMenuMock([ ...this.selectElement.selectedOptions ]);
 
             if (!this.visibleOptions) this.hide();
 
@@ -294,9 +294,9 @@ export default class AtmosSelect {
         if (!this.selectElement.multiple) {
             if (!values.length || !values[0] === null || values[0] === undefined) values[0] = "";
 
-            this.buttonMock.querySelector(".atmos-select-current-selection").textContent = values?.[0]?.toString();
+            this.buttonMock.childNodes[0].textContent = values?.[0]?.toString();
         } else {
-            this.buttonMock.querySelector(".atmos-select-current-selection").textContent =
+            this.buttonMock.childNodes[0].textContent =
                 values.length <= 3 ? values.join(", ") || this.selectElement.dataset.placeholder : `${values.length} options selected`;
         }
     }
@@ -353,12 +353,10 @@ export default class AtmosSelect {
         this.selectElement.insertAdjacentElement("afterend", mocksWrapper);
         this.mocksWrapper = mocksWrapper;
 
-        let buttonMock = Redom.el("button.atmos-select-button",
-            Redom.el("span.atmos-select-current-selection", this.selectElement.dataset.placeholder ?? ""),
-            {
-                type: "button",
-                disabled: this.selectElement.disabled,
-            }) as HTMLButtonElement;
+        let buttonMock = Redom.el("button.atmos-select-button", this.selectElement.dataset.placeholder ?? "", {
+            type: "button",
+            disabled: this.selectElement.disabled,
+        }) as HTMLButtonElement;
         Redom.mount(mocksWrapper, buttonMock);
         this.buttonMock = buttonMock;
         if (this.selectElement.selectedIndex >= 0) {
