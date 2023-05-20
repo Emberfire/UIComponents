@@ -5,27 +5,26 @@
     <title>Select test</title>
     <link rel="stylesheet" href="../src/atmosSelect.css">
     <link rel="stylesheet" href="./index.css">
-    <script type="importmap">
-        {
-            "imports": {"redom": "../node_modules/redom/esm/index.js"}
-        }
-    </script>
+    <script type="importmap">{ "imports": {"redom": "../node_modules/redom/esm/index.js"} }</script>
 </head>
 <body>
 <label>
     Atmos select
-    <select multiple name="product-manufacturer" data-toggle="select" data-placeholder="None selected" class="mt-2 form-field"
+    <select multiple name="product-manufacturer" class="mt-2 form-field"
+            data-toggle="select"
+            data-placeholder="None selected"
             data-selected-item-tick-src="./check.png"
             data-open-menu-button-src="./sort.png">
         <option disabled title="Explanation 1">Select an option</option>
-        <option value="1" title="Explanation 1">A</option>
-        <option value="2"
-                title="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus ea expedita fuga mollitia odit, placeat quod repellendus repudiandae sunt! Asperiores cupiditate deleniti est explicabo laborum molestiae nihil quis repudiandae sapiente!">
-            Aa
-        </option>
-        <option value="3">B</option>
-        <option value="4">C</option>
-        <option value="5">D</option>
+        <option value="1" title="Explanation 2">A</option>
+        <optgroup label="Optgroup 1">
+            <option value="2">Aa</option>
+            <option value="3">B</option>
+        </optgroup>
+        <optgroup label="Optgroup 2">
+            <option value="4">C</option>
+            <option value="5">D</option>
+        </optgroup>
         <option value="6">E</option>
     </select>
 </label>

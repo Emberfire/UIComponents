@@ -39,7 +39,6 @@
     padding: 0.25rem 0;
     border: 1px solid gray;
     background-color: white;
-    cursor: pointer;
 }
 
 .atmos-select-menu-item {
@@ -47,6 +46,7 @@
     justify-content: space-between;
     padding: .25rem .5rem;
     align-items: center;
+    cursor: pointer;
 }
 
 .atmos-select-menu-item.disabled {
@@ -54,12 +54,28 @@
     color: #808080;
 }
 
-.atmos-select-menu-item:hover {
+.atmos-select-menu-item:not(.disabled):not(.selected):hover {
     background-color: #e6e6e6;
 }
 
 .atmos-select-menu-item.selected {
     background-color: #d6d6d6;
+}
+
+.atmos-select-menu-optgroup {
+    padding-left: .5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.atmos-select-menu-optgroup-text {
+    padding: .25rem .5rem;
+    margin-left: -.5rem;
+}
+
+.atmos-select-menu-optgroup .atmos-select-menu-item {
+    padding-left: 2rem;
+    margin-left: -.5rem;
 }
 
 .atmos-select-menu-item-tick {
