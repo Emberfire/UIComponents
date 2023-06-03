@@ -425,13 +425,7 @@ export default class AtmosSelect {
             title: "Show all"
         }) as HTMLButtonElement;
         Redom.mount(buttonMock, showAllOptionsButton);
-
-        let selectedTickImage = Redom.el("img.atmos-select-toggle-caret", {
-            src: this.selectElement.dataset.openMenuButtonSrc || "",
-            alt: "Show all"
-        });
         this.showAllOptionsButton = showAllOptionsButton;
-        Redom.mount(showAllOptionsButton, selectedTickImage);
 
         // Apply the custom classes provided by the select element's configuration.
         if (this.selectElement.dataset.wrapperClass)
@@ -496,11 +490,7 @@ export default class AtmosSelect {
             menuItemMock.classList.add("disabled");
         }
 
-        let selectedTickImage = Redom.el("img.atmos-select-menu-item-tick", {
-            // If a selected image source is provided, create an image for selected options.
-            src: this.selectElement.dataset.selectedItemTickSrc || "",
-            alt: option.textContent || option.value ? "Selected" : "",
-        }) as HTMLImageElement;
+        let selectedTickImage = Redom.el("span.atmos-select-menu-item-tick");
         Redom.mount(menuItemMock, selectedTickImage);
 
         // Apply the custom class provided by the select element's configuration.

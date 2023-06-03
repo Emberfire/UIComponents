@@ -28,11 +28,6 @@
     cursor: pointer;
 }
 
-.atmos-select-toggle-caret {
-    height: 100%;
-    width: auto;
-}
-
 .atmos-select-menu {
     margin-top: .25rem;
     margin-bottom: .25rem;
@@ -87,7 +82,7 @@
 
 .atmos-select-menu-item-tick {
     height: 1rem;
-    width: auto;
+    width: 1rem;
     margin-left: auto;
 }
 

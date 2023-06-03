@@ -20,6 +20,7 @@ label {
     width: 10rem;
 }
 
+/*
 .atmos-select-wrapper {
     margin-top: 0.5rem;
 }
@@ -45,6 +46,9 @@ label {
     top: calc(50% - .5rem);
     height: 1rem;
     padding: 0 3px;
+    width: 1rem;
+    background-image: url("../test/sort.png");
+    background-size: contain;
 }
 
 .atmos-select-button:focus {
@@ -114,3 +118,8 @@ label {
 .atmos-select-menu-item.selected .atmos-select-menu-item-value {
     color: #d9d9d9;
 }
+
+.atmos-select-menu-item-tick {
+    background-image: url("../test/check.png");
+    background-size: contain;
+}*/
