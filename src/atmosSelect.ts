@@ -38,10 +38,11 @@ export default class AtmosSelect {
         this.buttonMock.addEventListener("click", () => {
             if (this.hidden) {
                 this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-select"));
-                this.show();
             } else if (!this.visibleOptions) {
                 this.hide();
             }
+
+            this.toggle();
 
             this.positionMenuMock();
         });
@@ -378,17 +379,17 @@ export default class AtmosSelect {
         let buttonRect = this.buttonMock.getBoundingClientRect();
         let menuRect = this.menuMock.getBoundingClientRect();
 
-        if (buttonRect.bottom + menuRect.height + 4 > window.innerHeight && buttonRect.top - 4 < menuRect.height) {
+        if (buttonRect.bottom + menuRect.height + 15 > window.innerHeight && buttonRect.top - 15 < menuRect.height) {
             // If the menu can't be positioned either on top or bottom of the button mock,
             // position it below the input and limit its height.
-            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY}px`;
-            this.menuMock.style.height = `${window.innerHeight - buttonRect.bottom - 4}px`;
-        } else if (buttonRect.bottom + menuRect.height + 4 > window.innerHeight) {
+            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
+            this.menuMock.style.height = `${window.innerHeight - buttonRect.bottom - 10}px`;
+        } else if (buttonRect.bottom + menuRect.height + 15 > window.innerHeight) {
             // If there isn't enough space to position the menu below the button mock, position it above it instead.
-            this.menuMock.style.top = `${buttonRect.top - menuRect.height - 8 + window.scrollY}px`;
+            this.menuMock.style.top = `${buttonRect.top - menuRect.height - 5 + window.scrollY}px`;
         } else {
             // Else position the menu directly below the button element, with a little margin.
-            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY}px`;
+            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
         }
 
         console.debug(`Positioning menu to ${buttonRect.width}, ${buttonRect.left}.`);
