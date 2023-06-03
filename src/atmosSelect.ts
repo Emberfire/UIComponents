@@ -12,7 +12,7 @@ export default class AtmosSelect {
     private optionsChangeMutationObserver: MutationObserver;
     private selectElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
-    private visibleOptions: number;
+    private visibleOptions: number = 0;
     private menuItemMocks = new Array<HTMLLIElement>();
 
     constructor(selectElement: HTMLSelectElement) {
@@ -43,6 +43,8 @@ export default class AtmosSelect {
 
         // Keyboard navigation to match the native select element's feature
         this.mocksWrapper.addEventListener("keydown", (e) => {
+            if (!this.selectElement.options?.length) return;
+
             if (e.code === "ArrowDown") {
                 e.preventDefault();
 
@@ -111,6 +113,8 @@ export default class AtmosSelect {
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the select menu.
         this.listeners.selectElementChangeListener = () => {
+            if (!this.selectElement.options?.length) return;
+
             this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
@@ -123,6 +127,8 @@ export default class AtmosSelect {
         // When the user clicks on an option in the menu mock, select the option in the select element
         // and set the input mock value to it.
         this.menuMock.addEventListener("click", e => {
+            if (!this.selectElement.options?.length) return;
+
             let target = (<HTMLElement>e.target).closest<HTMLLIElement>(".atmos-select-menu-item");
             if (!target) return;
 
@@ -134,7 +140,7 @@ export default class AtmosSelect {
                 bubbles: true,
                 detail: { filterMenu: false }
             }));
-            
+
             this.selectedMenuItemMock = target;
 
             this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
@@ -185,6 +191,8 @@ export default class AtmosSelect {
             attributeFilter: [ "disabled" ]
         });
 
+        this.visibleOptions = this.selectElement.options?.length ?? 0;
+
         AtmosSelect.selects.set(selectElement, this);
     }
 
@@ -214,7 +222,7 @@ export default class AtmosSelect {
                         // Skip initialization if component has already been initialized before detection.
                         if (this.selects.has(toggle)) continue;
 
-                        if (!this.selects.has(toggle)) new AtmosSelect(toggle);
+                        new AtmosSelect(toggle);
                     }
                 }
 
@@ -434,6 +442,7 @@ export default class AtmosSelect {
 
     private generateOptionMocks() {
         Redom.setChildren(this.menuMock, []);
+        if (!this.selectElement.options?.length) return;
 
         for (const child of this.selectElement.children) {
             if (child instanceof HTMLOptGroupElement) {
