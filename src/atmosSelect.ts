@@ -271,6 +271,16 @@ export default class AtmosSelect {
         this.menuMock.dispatchEvent(customEvent);
     }
 
+    pauseOptionsObserver() {
+        this.optionsChangeMutationObserver.disconnect();
+    }
+
+    resumeOptionsObserver() {
+        this.optionsChangeMutationObserver.observe(this.selectElement, {
+            childList: true
+        });
+    }
+
     destroy() {
         // First remove all associated event listeners on elements that will remain.
         // The rest of the listeners will be removed when we remove the mocks.
