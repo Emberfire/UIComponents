@@ -50,37 +50,51 @@ export default class AtmosSelect {
                 // or cycle back to the first visible one.
                 let nextOption = this.selectedMenuItemMock;
                 let i = this.menuItemMocks.indexOf(nextOption);
+                let previousOption: HTMLLIElement;
                 do {
+                    previousOption = nextOption;
                     nextOption = this.menuItemMocks[++i] as HTMLLIElement;
                     if (!nextOption) {
                         i = 0;
                         nextOption = this.menuItemMocks[0] as HTMLLIElement
                     }
-                } while (!nextOption || nextOption.classList.contains("hidden") || nextOption.classList.contains("disabled"))
+                } while (!nextOption ||
+                (previousOption && nextOption.selectOption.textContent === previousOption.selectOption.textContent) ||
+                nextOption.classList.contains("hidden") ||
+                nextOption.classList.contains("disabled"))
 
                 this.selectElement.selectedIndex = -1;
                 nextOption.selectOption.selected = true;
 
                 selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+
+                this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
 
                 // If the user pressed the up arrow, search the first visible option above the currently selected one
                 // or cycle back to the last visible one.
-                let previousOption = this.selectedMenuItemMock;
-                let i = this.menuItemMocks.indexOf(previousOption);
+                let nextOption = this.selectedMenuItemMock;
+                let i = this.menuItemMocks.indexOf(nextOption);
+                let previousOption;
                 do {
-                    previousOption = this.menuItemMocks[--i] as HTMLLIElement;
-                    if (!previousOption) {
+                    previousOption = nextOption;
+                    nextOption = this.menuItemMocks[--i] as HTMLLIElement;
+                    if (!nextOption) {
                         i = this.menuItemMocks.length - 1;
-                        previousOption = this.menuItemMocks[this.menuItemMocks.length - 1] as HTMLLIElement
+                        nextOption = this.menuItemMocks[this.menuItemMocks.length - 1] as HTMLLIElement
                     }
-                } while (!previousOption || previousOption.classList.contains("hidden") || previousOption.classList.contains("disabled"))
+                } while (!nextOption ||
+                (previousOption && nextOption.selectOption.textContent === previousOption.selectOption.textContent) ||
+                nextOption.classList.contains("hidden") ||
+                nextOption.classList.contains("disabled"))
 
                 this.selectElement.selectedIndex = -1;
-                previousOption.selectOption.selected = true;
+                nextOption.selectOption.selected = true;
 
                 selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+
+                this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "Escape") {
                 // Close the option menu on Escape key
                 e.preventDefault();
@@ -120,6 +134,10 @@ export default class AtmosSelect {
                 bubbles: true,
                 detail: { filterMenu: false }
             }));
+            
+            this.selectedMenuItemMock = target;
+
+            this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
         });
 
         // When the user clicks somewhere else, close the menu mock.
@@ -430,12 +448,18 @@ export default class AtmosSelect {
         });
         Redom.mount(parent, menuItemMock);
 
+        if (option.value !== option.textContent) {
+            let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.value);
+            Redom.mount(menuItemMock, menuItemSubtext);
+        }
+
         menuItemMock["selectOption"] = option;
         option["selectMenuOption"] = menuItemMock as HTMLLIElement;
 
-        if (option.selected) {
+        if (option.selected && !option.disabled) {
             menuItemMock.classList.add("selected");
             this.selectedMenuItemMock = menuItemMock as HTMLLIElement;
+            this.updateButtonMockTitle(this.selectedMenuItemMock.title);
         }
 
         if (option.disabled ||

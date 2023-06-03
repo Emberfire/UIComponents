@@ -20,7 +20,6 @@ label {
     width: 10rem;
 }
 
-/*
 .atmos-select-wrapper {
     margin-top: 0.5rem;
 }
@@ -110,4 +109,8 @@ label {
 .atmos-select-menu-optgroup .atmos-select-menu-item,
 .atmos-select-menu-optgroup-text {
     margin: 0 -.75rem;
-}*/
+}
+
+.atmos-select-menu-item.selected .atmos-select-menu-item-value {
+    color: #d9d9d9;
+}
