@@ -36,9 +36,14 @@ export default class AtmosSelect {
         selectElement.addEventListener("focus", this.listeners.selectElementFocusListener);
 
         this.buttonMock.addEventListener("click", () => {
-            this.toggle();
+            if (this.hidden) {
+                this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-select"));
+                this.show();
+            } else if (!this.visibleOptions) {
+                this.hide();
+            }
 
-            if (!this.hidden) this.positionMenuMock();
+            this.positionMenuMock();
         });
 
         // Keyboard navigation to match the native select element's feature
@@ -114,6 +119,8 @@ export default class AtmosSelect {
         // also update the selected value in the select menu.
         this.listeners.selectElementChangeListener = () => {
             if (!this.selectElement.options?.length) return;
+
+            this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-select"));
 
             this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
@@ -443,6 +450,7 @@ export default class AtmosSelect {
     private generateOptionMocks() {
         Redom.setChildren(this.menuMock, []);
         if (!this.selectElement.options?.length) return;
+        this.menuItemMocks = [];
 
         for (const child of this.selectElement.children) {
             if (child instanceof HTMLOptGroupElement) {
