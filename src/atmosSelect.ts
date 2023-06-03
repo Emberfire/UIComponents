@@ -236,8 +236,8 @@ export default class AtmosSelect {
         });
     }
 
-    static get(selectElement) {
-        return this.selects.get(selectElement);
+    static get(element) {
+        return this.selects.get(element);
     }
 
     hide() {
