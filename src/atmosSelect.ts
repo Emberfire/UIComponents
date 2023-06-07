@@ -8,7 +8,6 @@ export default class AtmosSelect {
     private buttonMock: HTMLButtonElement;
     private menuMock: HTMLElement;
     private selectedMenuItemMock: HTMLLIElement;
-    private showAllOptionsButton: HTMLButtonElement;
     private optionsChangeMutationObserver: MutationObserver;
     private selectElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
@@ -324,7 +323,6 @@ export default class AtmosSelect {
         this.mocksWrapper = null;
         this.menuMock = null;
         this.selectedMenuItemMock = null;
-        this.showAllOptionsButton = null;
         this.optionsChangeMutationObserver = null;
         this.selectElementAttributesChangeMutationObserver = null;
         this.listeners = null;
@@ -420,14 +418,6 @@ export default class AtmosSelect {
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
-        // Create a button that shows all options when clicked, positioned middle right of the input mock.
-        let showAllOptionsButton = Redom.el("span.atmos-select-menu-toggle", {
-            tabIndex: -1,
-            title: "Show all"
-        }) as HTMLButtonElement;
-        Redom.mount(buttonMock, showAllOptionsButton);
-        this.showAllOptionsButton = showAllOptionsButton;
-
         // Apply the custom classes provided by the select element's configuration.
         if (this.selectElement.dataset.wrapperClass)
             mocksWrapper.classList.add(this.selectElement.dataset.wrapperClass);
@@ -435,8 +425,6 @@ export default class AtmosSelect {
             buttonMock.classList.add(this.selectElement.dataset.inputClass);
         if (this.selectElement.dataset.menuClass)
             menuMock.classList.add(this.selectElement.dataset.menuClass);
-        if (this.selectElement.dataset.showAllButtonClass)
-            this.showAllOptionsButton.classList.add(this.selectElement.dataset.showAllButtonClass);
 
         // Generate the option elements in the dropdown
         this.generateOptionMocks();

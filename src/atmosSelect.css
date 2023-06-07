@@ -8,7 +8,7 @@
 
 .atmos-select-button {
     width: 100%;
-    padding-right: 2rem;
+    padding: 0.3rem 2rem 0.3rem 0.5rem;
     display: flex;
     justify-content: space-between;
     overflow: hidden;
@@ -16,16 +16,14 @@
     white-space: nowrap;
 }
 
-.atmos-select-menu-toggle {
+.atmos-select-button:after {
+    display: inline;
+    content: 'v';
     font-size: 10px;
     position: absolute;
     right: 0.5rem;
     top: calc(50% - .5rem);
     height: 1rem;
-}
-
-.atmos-select-menu-toggle:not(:disabled) {
-    cursor: pointer;
 }
 
 .atmos-select-menu {
