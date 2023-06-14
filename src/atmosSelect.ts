@@ -169,7 +169,9 @@ export default class AtmosSelect {
         document.addEventListener("click", this.listeners.documentClickListener);
 
         // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
-        this.listeners.documentResizeListener = () => this.positionMenuMock();
+        this.listeners.documentResizeListener = () => {
+            if (!this.hidden) this.positionMenuMock();
+        };
         window.addEventListener("resize", this.listeners.documentResizeListener);
 
         // When the user clicks on any of the hidden select element's labels, focus the input mock instead.
@@ -402,7 +404,7 @@ export default class AtmosSelect {
         this.selectElement.insertAdjacentElement("afterend", mocksWrapper);
         this.mocksWrapper = mocksWrapper;
 
-        let buttonMock = Redom.el("button.atmos-select-button", this.selectElement.dataset.placeholder ?? "", {
+        let buttonMock = Redom.el("button.atmos-select-button", this.selectElement.dataset.placeholder ?? "None selected", {
             type: "button",
             disabled: this.selectElement.disabled,
         }) as HTMLButtonElement;
