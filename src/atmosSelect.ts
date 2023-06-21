@@ -118,7 +118,10 @@ export default class AtmosSelect {
 
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the select menu.
-        this.listeners.selectElementChangeListener = () => {
+        this.listeners.selectElementChangeListener = async () => {
+            // Wait for any incomplete additions of options.
+            await new Promise(resolve => requestAnimationFrame(resolve));
+
             if (!this.selectElement.options?.length) return;
 
             this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-select"));
