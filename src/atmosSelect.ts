@@ -1,3 +1,4 @@
+// @ts-ignore
 import * as Redom from "redom";
 
 export default class AtmosSelect {
@@ -278,6 +279,13 @@ export default class AtmosSelect {
 
     toggle() {
         if (!this.visibleOptions && this.hidden) return;
+
+        if (this.hidden) {
+            // First hide all other menu mocks, since only one needs to be shown at one time.
+            for (const [ _, select ] of AtmosSelect.selects) {
+                if (!select.hidden) select.hide();
+            }
+        }
 
         this.menuMock.classList.toggle("hidden");
         this.positionMenuMock();
