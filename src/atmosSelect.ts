@@ -124,8 +124,6 @@ export default class AtmosSelect {
 
             if (!this.selectElement.options?.length) return;
 
-            this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-select"));
-
             this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
@@ -366,7 +364,8 @@ export default class AtmosSelect {
 
     private updateButtonMock(values: string[]) {
         if (!this.selectElement.multiple) {
-            if (!values.length || !values[0] === null || values[0] === undefined) values[0] = "";
+            if (!values.length || !values[0] === null || values[0] === undefined)
+                values[0] = this.selectElement.dataset.placeholder || "";
 
             this.buttonMock.childNodes[0].textContent = values?.[0]?.toString();
         } else {
@@ -483,7 +482,7 @@ export default class AtmosSelect {
         });
         Redom.mount(parent, menuItemMock);
 
-        if (option.value !== option.textContent) {
+        if (option.value !== option.textContent && this.selectElement.dataset.showValues !== "false") {
             let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.value);
             Redom.mount(menuItemMock, menuItemSubtext);
         }
