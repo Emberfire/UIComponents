@@ -309,6 +309,18 @@ export default class AtmosSelect {
         });
     }
 
+    async refreshMenu() {
+        // Wait for any incomplete additions of options.
+        await new Promise(resolve => requestAnimationFrame(resolve));
+
+        if (!this.selectElement.options?.length) return;
+
+        this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
+        this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
+
+        this.updateMenuMock([ ...this.selectElement.selectedOptions ]);
+    }
+
     destroy() {
         // First remove all associated event listeners on elements that will remain.
         // The rest of the listeners will be removed when we remove the mocks.
