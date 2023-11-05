@@ -6,7 +6,7 @@ export default class AtmosSelect {
 
     private selectElement: HTMLSelectElement;
     private mocksWrapper: HTMLElement;
-    private buttonMock: HTMLButtonElement;
+    buttonMock: HTMLButtonElement;
     private menuMock: HTMLElement;
     private selectedMenuItemMock: HTMLLIElement;
     private optionsChangeMutationObserver: MutationObserver;
@@ -439,6 +439,7 @@ export default class AtmosSelect {
         // Create the dropdown and insert it at the end of the body element,
         // since if placed in an overflowing container it might become partly hidden.
         let menuMock = Redom.el("ul.atmos-select-menu.hidden") as HTMLUListElement;
+        if (this.selectElement.id) menuMock.dataset.origin = this.selectElement.id;
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 

@@ -16,16 +16,6 @@
     white-space: nowrap;
 }
 
-.atmos-select-button:after {
-    display: inline;
-    content: 'v';
-    font-size: 10px;
-    position: absolute;
-    right: 0.5rem;
-    top: calc(50% - .5rem);
-    height: 1rem;
-}
-
 .atmos-select-menu {
     margin: 0;
     position: absolute;
