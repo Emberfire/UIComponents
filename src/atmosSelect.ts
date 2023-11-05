@@ -147,7 +147,9 @@ export default class AtmosSelect {
 
             this.selectElement.dispatchEvent(new CustomEvent("change", {
                 bubbles: true,
-                detail: { filterMenu: false }
+                detail: {
+                    filterMenu: false
+                }
             }));
 
             this.selectedMenuItemMock = target;
@@ -160,7 +162,8 @@ export default class AtmosSelect {
             let target = e.target as HTMLElement;
             if (target.closest(".atmos-select-menu") === this.menuMock) {
                 // Don't close the menu if the user clicks inside of it.
-                if (this.selectElement.multiple) return;
+                if (this.selectElement.multiple ||
+                    target.closest(".atmos-select-menu-optgroup")) return;
             } else if (target.closest(".atmos-select-button") === this.buttonMock) {
                 // Don't close the menu if the user clicks on the input mock.
                 return;
