@@ -38,7 +38,8 @@ export default class AtmosSelect {
 
         this.buttonMock.addEventListener("click", () => {
             if (this.hidden) {
-                this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-select"));
+                let result = this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-select", { cancelable: true }));
+                if (!result) return;
             } else if (!this.visibleOptions) {
                 this.hide();
             }
