@@ -264,6 +264,26 @@ export default class AtmosSelect {
 
             if (!AtmosSelect.openedSelect.hidden) AtmosSelect.openedSelect.positionMenuMock();
         });
+
+        let initialRect: DOMRect;
+        // Scroll-linked positioning for the menu mock. Disabled until a more elegant way is found to
+        // position menu without causing so much reflow and triggering browser warnings.
+        window.addEventListener("scroll", () => {
+            if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden) return;
+
+            let buttonRect = AtmosSelect.openedSelect.buttonMock.getBoundingClientRect();
+            if (!initialRect) initialRect = buttonRect;
+
+            AtmosSelect.openedSelect.menuMock.style.transform =
+                `translate(${buttonRect.right - initialRect.right}px, ${buttonRect.bottom - initialRect.bottom}px)`;
+        }, { capture: true, passive: true });
+
+        window.addEventListener("scrollend", () => {
+            if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden) return;
+
+            AtmosSelect.openedSelect.positionMenuMock();
+            initialRect = null;
+        }, { capture: true, passive: true });
     }
 
     static get(element) {
@@ -433,6 +453,8 @@ export default class AtmosSelect {
         // Set the option menu's width to the button's width.
         this.menuMock.style.minWidth = `${buttonRect.width}px`;
         this.menuMock.style.left = `${buttonRect.left}px`;
+
+        this.menuMock.style.removeProperty("transform");
     }
 
     private generateMocks() {
