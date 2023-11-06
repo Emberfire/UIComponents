@@ -3,6 +3,7 @@ import * as Redom from "redom";
 
 export default class AtmosSelect {
     private static selects = new Map<HTMLElement, AtmosSelect>();
+    private static openedSelect: AtmosSelect;
 
     private selectElement: HTMLSelectElement;
     private mocksWrapper: HTMLElement;
@@ -157,28 +158,6 @@ export default class AtmosSelect {
             this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
         });
 
-        // When the user clicks somewhere else, close the menu mock.
-        this.listeners.documentClickListener = (e) => {
-            let target = e.target as HTMLElement;
-            if (target.closest(".atmos-select-menu") === this.menuMock) {
-                // Don't close the menu if the user clicks inside of it.
-                if (this.selectElement.multiple ||
-                    target.closest(".atmos-select-menu-optgroup")) return;
-            } else if (target.closest(".atmos-select-button") === this.buttonMock) {
-                // Don't close the menu if the user clicks on the input mock.
-                return;
-            }
-
-            this.hide();
-        }
-        document.addEventListener("click", this.listeners.documentClickListener);
-
-        // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
-        this.listeners.documentResizeListener = () => {
-            if (!this.hidden) this.positionMenuMock();
-        };
-        window.addEventListener("resize", this.listeners.documentResizeListener);
-
         // When the user clicks on any of the hidden select element's labels, focus the input mock instead.
         this.listeners.labelClickListener = (e) => {
             e.stopPropagation();
@@ -256,6 +235,35 @@ export default class AtmosSelect {
             childList: true,
             subtree: true
         });
+
+        // When the user clicks somewhere else, close the menu mock.
+        document.addEventListener("click", (e) => {
+            // There is no menu open, and we don't need to execute more logic
+            if (!AtmosSelect.openedSelect) return;
+
+            let target = e.target as HTMLElement;
+            if (target.closest(".atmos-select-menu") === AtmosSelect.openedSelect.menuMock) {
+                // Don't close the menu if the user clicks inside of it.
+                if (AtmosSelect.openedSelect.selectElement.multiple) {
+                    return;
+                } else if (target.closest(".atmos-select-menu-optgroup") &&
+                    !target.closest(".atmos-select-menu-item")) {
+                    return;
+                }
+            } else if (target.closest(".atmos-select-button") === AtmosSelect.openedSelect.buttonMock) {
+                // Don't close the menu if the user clicks on the input mock.
+                return;
+            }
+
+            AtmosSelect.openedSelect.hide();
+        });
+
+        // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
+        window.addEventListener("resize", () => {
+            if (!AtmosSelect.openedSelect) return;
+
+            if (!AtmosSelect.openedSelect.hidden) AtmosSelect.openedSelect.positionMenuMock();
+        });
     }
 
     static get(element) {
@@ -265,18 +273,20 @@ export default class AtmosSelect {
     hide() {
         this.menuMock.classList.add("hidden");
 
+        AtmosSelect.openedSelect = null;
+
         this.menuMock.dispatchEvent(new CustomEvent("hide.atmos-select"));
     }
 
     show() {
         if (!this.visibleOptions) return;
 
-        // First hide all other menu mocks, since only one needs to be shown at one time.
-        for (const [ _, select ] of AtmosSelect.selects) {
-            if (!select.hidden) select.hide();
-        }
+        // First hide other menu mocks, since only one needs to be shown at one time.
+        if (!AtmosSelect.openedSelect?.hidden) AtmosSelect.openedSelect?.hide();
 
         this.menuMock.classList.remove("hidden");
+
+        AtmosSelect.openedSelect = this;
 
         this.menuMock.dispatchEvent(new CustomEvent("show.atmos-select"));
     }
@@ -285,18 +295,22 @@ export default class AtmosSelect {
         if (!this.visibleOptions && this.hidden) return;
 
         if (this.hidden) {
-            // First hide all other menu mocks, since only one needs to be shown at one time.
-            for (const [ _, select ] of AtmosSelect.selects) {
-                if (!select.hidden) select.hide();
-            }
+            // First hide other menu mocks, since only one needs to be shown at one time.
+            if (!AtmosSelect.openedSelect?.hidden) AtmosSelect.openedSelect?.hide();
         }
 
         this.menuMock.classList.toggle("hidden");
         this.positionMenuMock();
 
-        let customEvent = this.menuMock.classList.contains("hidden")
-            ? new CustomEvent("hide.atmos-select")
-            : new CustomEvent("show.atmos-select");
+        let customEvent: CustomEvent;
+        if (!this.menuMock.classList.contains("hidden")) {
+            customEvent = new CustomEvent("show.atmos-select");
+            AtmosSelect.openedSelect = this;
+        } else {
+            customEvent = new CustomEvent("hide.atmos-select");
+            AtmosSelect.openedSelect = null;
+        }
+
         this.menuMock.dispatchEvent(customEvent);
     }
 
@@ -325,8 +339,6 @@ export default class AtmosSelect {
     destroy() {
         // First remove all associated event listeners on elements that will remain.
         // The rest of the listeners will be removed when we remove the mocks.
-        document.removeEventListener("click", this.listeners.documentClickListener);
-        document.removeEventListener("resize", this.listeners.documentResizeListener);
         this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
         this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
         for (const label of this.selectElement.labels) {
