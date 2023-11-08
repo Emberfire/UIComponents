@@ -349,10 +349,10 @@ export default class AtmosSelect {
         // Wait for any incomplete additions of options.
         await new Promise(resolve => requestAnimationFrame(resolve));
 
-        if (!this.selectElement.options?.length) return;
-
         this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
         this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
+
+        if (!this.selectElement.options?.length) return;
 
         this.updateMenuMock([ ...this.selectElement.selectedOptions ]);
     }
@@ -374,6 +374,8 @@ export default class AtmosSelect {
         this.mocksWrapper.remove();
         this.menuMock.remove();
         AtmosSelect.selects.delete(this.selectElement);
+
+        if (AtmosSelect.openedSelect === this) AtmosSelect.openedSelect = null;
 
         // Show the original select element
         this.selectElement.style.removeProperty("display");
