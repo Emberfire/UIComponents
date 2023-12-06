@@ -403,7 +403,7 @@ export default class AtmosSelect {
     private updateButtonMock(values: string[]) {
         if (!this.selectElement.multiple) {
             if (!values.length || !values[0] === null || values[0] === undefined)
-                values[0] = this.selectElement.dataset.placeholder || "";
+                values[0] = this.selectElement.dataset.placeholder ?? "None selected";
 
             this.buttonMock.childNodes[0].textContent = values?.[0]?.toString();
         } else {
@@ -412,7 +412,7 @@ export default class AtmosSelect {
         }
     }
 
-    private updateButtonMockTitle(value: string) {
+    private updateButtonMockTitle(value?: string) {
         if (!value === null || value === undefined) value = "";
 
         this.buttonMock.title = value?.toString();
