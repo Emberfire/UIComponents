@@ -26,10 +26,14 @@
     background-color: white;
 }
 
+.atmos-select-menu-control,
 .atmos-select-menu-item {
     display: flex;
     padding: .25rem .5rem;
     align-items: center;
+}
+
+.atmos-select-menu-item {
     cursor: pointer;
 }
 

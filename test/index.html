@@ -10,19 +10,22 @@
 <body>
 <label>
     Atmos select
-    <select data-toggle="select" data-placeholder="None selected">
-        <option disabled title="Explanation 1">Select an option</option>
-        <option value="1" title="Explanation 2">A</option>
-        <option value="1" title="Explanation 2">Aaa</option>
-        <optgroup label="Optgroup 1">
-            <option value="2">Aa</option>
-            <option value="3">B</option>
+    <select data-toggle="select" data-placeholder="None selected" data-live-search="true">
+        <!-- Options without a value attribute but with text -->
+        <option>Banana</option>
+        <!-- Options with a value attribute and no text -->
+        <option value="apple-1"></option>
+        <!-- Options with both value attribute and text -->
+        <option value="carrot-3">Carrot</option>
+        <!-- Options with no value attribute and no text -->
+        <option></option>
+        <!-- Disabled options -->
+        <option disabled>Tangerine</option>
+        <!-- Options inside optgroups -->
+        <optgroup label="Fruits">
+            <option>Strawberry</option>
+            <option value="kiwi">Kiwi</option>
         </optgroup>
-        <optgroup label="Optgroup 2">
-            <option value="4">C</option>
-            <option value="5">D</option>
-        </optgroup>
-        <option value="6">E</option>
     </select>
 </label>
 <script type="module" src="../dist/atmosSelect.js"></script>

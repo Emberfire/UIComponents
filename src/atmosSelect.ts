@@ -6,10 +6,12 @@ export default class AtmosSelect {
     private static openedSelect: AtmosSelect;
 
     private selectElement: HTMLSelectElement;
+    private buttonMock: HTMLButtonElement;
     private mocksWrapper: HTMLElement;
-    buttonMock: HTMLButtonElement;
     private menuMock: HTMLElement;
     private selectedMenuItemMock: HTMLLIElement;
+    private searchInputMock: HTMLInputElement;
+
     private optionsChangeMutationObserver: MutationObserver;
     private selectElementAttributesChangeMutationObserver: MutationObserver;
     private listeners: any = {};
@@ -30,9 +32,7 @@ export default class AtmosSelect {
 
         // If the hidden select element somehow gets focus, move that focus to the button mock and open the menu.
         this.listeners.selectElementFocusListener = () => {
-            if (!selectElement.disabled) {
-                this.buttonMock.focus();
-            }
+            if (!selectElement.disabled) this.buttonMock.focus();
         }
         selectElement.addEventListener("focus", this.listeners.selectElementFocusListener);
 
@@ -40,13 +40,13 @@ export default class AtmosSelect {
             if (this.hidden) {
                 let result = this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-select", { cancelable: true }));
                 if (!result) return;
-            } else if (!this.visibleOptions) {
+            } else if (!this.visibleOptions && !this.isLiveSearchEnabled) {
                 this.hide();
             }
 
             this.toggle();
 
-            this.positionMenuMock();
+            if (!this.hidden && this.isLiveSearchEnabled) requestAnimationFrame(() => this.searchInputMock.focus());
         });
 
         // Keyboard navigation to match the native select element's feature
@@ -55,6 +55,7 @@ export default class AtmosSelect {
 
             if (e.code === "ArrowDown") {
                 e.preventDefault();
+                if (!this.visibleOptions) return;
 
                 // If the user pressed the down arrow, search the first visible option below the currently selected one
                 // or cycle back to the first visible one.
@@ -76,11 +77,15 @@ export default class AtmosSelect {
                 this.selectElement.selectedIndex = -1;
                 nextOption.selectOption.selected = true;
 
-                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+                selectElement.dispatchEvent(new CustomEvent("change", {
+                    bubbles: true,
+                    detail: { filterMenu: false }
+                }));
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
+                if (!this.visibleOptions) return;
 
                 // If the user pressed the up arrow, search the first visible option above the currently selected one
                 // or cycle back to the last visible one.
@@ -102,7 +107,11 @@ export default class AtmosSelect {
                 this.selectElement.selectedIndex = -1;
                 nextOption.selectOption.selected = true;
 
-                selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+
+                selectElement.dispatchEvent(new CustomEvent("change", {
+                    bubbles: true,
+                    detail: { filterMenu: false }
+                }));
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "Escape") {
@@ -113,10 +122,28 @@ export default class AtmosSelect {
                 // Toggle the option menu on Enter key
                 e.preventDefault();
                 this.toggle();
+
+                if (!this.hidden && this.isLiveSearchEnabled) requestAnimationFrame(() => this.searchInputMock.focus());
             } else if (e.code === "Tab") {
                 this.hide()
             }
         });
+
+        if (this.isLiveSearchEnabled) {
+            this.searchInputMock.addEventListener("keydown", (e) => {
+                if (this.hidden || !this.selectElement.options?.length) return;
+
+                if (e.code === "Enter") {
+                    // Toggle the option menu on Enter key
+                    e.preventDefault();
+                    this.toggle();
+                    this.buttonMock.focus();
+                } else if (e.code === "ArrowDown" || e.code === "ArrowUp") {
+                    e.preventDefault();
+                    this.mocksWrapper.dispatchEvent(new KeyboardEvent("keydown", { code: e.code }));
+                }
+            });
+        }
 
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the select menu.
@@ -135,6 +162,15 @@ export default class AtmosSelect {
         };
         selectElement.addEventListener("change", this.listeners.selectElementChangeListener);
 
+        if (this.isLiveSearchEnabled) {
+            let inputListener = () => {
+                this.filterMenuMock(this.searchInputMock.value);
+                this.positionMenuMock();
+            }
+            this.searchInputMock.addEventListener("input", inputListener);
+            this.searchInputMock.addEventListener("change", inputListener);
+        }
+
         // When the user clicks on an option in the menu mock, select the option in the select element
         // and set the input mock value to it.
         this.menuMock.addEventListener("click", e => {
@@ -147,16 +183,14 @@ export default class AtmosSelect {
 
             this.updateSelectElement(this.menuItemMocks.indexOf(target));
 
-            this.selectElement.dispatchEvent(new CustomEvent("change", {
-                bubbles: true,
-                detail: {
-                    filterMenu: false
-                }
-            }));
-
             this.selectedMenuItemMock = target;
 
             this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
+
+            this.selectElement.dispatchEvent(new CustomEvent("change", {
+                bubbles: true,
+                detail: { filterMenu: false }
+            }));
         });
 
         // When the user clicks on any of the hidden select element's labels, focus the input mock instead.
@@ -188,6 +222,10 @@ export default class AtmosSelect {
         this.visibleOptions = this.selectElement.options?.length ?? 0;
 
         AtmosSelect.selects.set(selectElement, this);
+    }
+
+    private get isLiveSearchEnabled() {
+        return this.selectElement.dataset?.liveSearch === "true";
     }
 
     private get hidden() {
@@ -237,22 +275,28 @@ export default class AtmosSelect {
             subtree: true
         });
 
-        // When the user clicks somewhere else, close the menu mock.
+        // When the user clicks somewhere else, close the opened menu mock.
         document.addEventListener("click", (e) => {
-            // There is no menu open, and we don't need to execute more logic
+            // There is no menu open, and we don't need to execute more logic.
             if (!AtmosSelect.openedSelect) return;
 
             let target = e.target as HTMLElement;
             if (target.closest(".atmos-select-menu") === AtmosSelect.openedSelect.menuMock) {
                 // Don't close the menu if the user clicks inside of it.
-                if (AtmosSelect.openedSelect.selectElement.multiple) {
+
+                if (target.closest(".atmos-select-menu-item.disabled")) {
+                    // Don't close the menu if the user clicks on a disabled option.
+                    return;
+                } if (AtmosSelect.openedSelect.selectElement.multiple) {
                     return;
                 } else if (target.closest(".atmos-select-menu-optgroup") &&
                     !target.closest(".atmos-select-menu-item")) {
                     return;
+                } else if (target.closest(".atmos-select-menu-control")) {
+                    return;
                 }
             } else if (target.closest(".atmos-select-button") === AtmosSelect.openedSelect.buttonMock) {
-                // Don't close the menu if the user clicks on the input mock.
+                // Don't close the menu if the user clicks on the button mock.
                 return;
             }
 
@@ -300,7 +344,7 @@ export default class AtmosSelect {
     }
 
     show() {
-        if (!this.visibleOptions) return;
+        if (!this.visibleOptions && !this.isLiveSearchEnabled) return;
 
         // First hide other menu mocks, since only one needs to be shown at one time.
         if (!AtmosSelect.openedSelect?.hidden) AtmosSelect.openedSelect?.hide();
@@ -313,7 +357,7 @@ export default class AtmosSelect {
     }
 
     toggle() {
-        if (!this.visibleOptions && this.hidden) return;
+        if (!this.visibleOptions && this.hidden && !this.isLiveSearchEnabled) return;
 
         if (this.hidden) {
             // First hide other menu mocks, since only one needs to be shown at one time.
@@ -389,6 +433,7 @@ export default class AtmosSelect {
         this.listeners = null;
         this.visibleOptions = null;
         this.buttonMock = null;
+        this.searchInputMock = null;
     }
 
     private updateSelectElement(selectedOptionIndex: number) {
@@ -430,6 +475,57 @@ export default class AtmosSelect {
         for (const selectedOption of selectedOptions) {
             selectedOption.selectMenuOption.classList.add("selected");
             this.selectedMenuItemMock = selectedOption.selectMenuOption;
+        }
+    }
+
+    private filterMenuMock(value: string) {
+        console.debug(`Filtering menu.`);
+
+        this.visibleOptions = 0;
+
+        // If input value is empty, show all the options.
+        if (!value) {
+            for (const menuItemMock of this.menuMock.querySelectorAll(".hidden")) {
+                menuItemMock.classList.remove("hidden");
+            }
+
+            this.visibleOptions = this.selectElement.children.length;
+            return;
+        }
+
+        // Iterate the available options
+        for (const menuItemMock of this.menuItemMocks) {
+            // First normalize the values before comparing them.
+            let normalizedOptionText = menuItemMock.selectOption.textContent.toLowerCase().trim();
+            let normalizedOptionValue = menuItemMock.selectOption.value.toLowerCase().trim();
+            let normalizedText = value.toLowerCase().trim();
+            if (menuItemMock.selectOption.textContent === value || menuItemMock.selectOption.value === value) {
+                // Case in which we have a perfectly matching option.
+                // Show the option mock.
+                menuItemMock.classList.remove("hidden");
+                if (menuItemMock.parentElement.classList.contains("atmos-select-menu-optgroup"))
+                    menuItemMock.parentElement.classList.remove("hidden");
+
+                this.visibleOptions++;
+            } else if (normalizedOptionText.includes(normalizedText) || normalizedOptionValue.includes(normalizedText)) {
+                // Case in which we have a partially matching option.
+                menuItemMock.classList.remove("hidden");
+                if (menuItemMock.parentElement.classList.contains("atmos-select-menu-optgroup"))
+                    menuItemMock.parentElement.classList.remove("hidden");
+
+                this.visibleOptions++;
+            } else {
+                // Case in which we have a non-matching option and must hide it.
+                menuItemMock.classList.add("hidden");
+                if (menuItemMock.parentElement.classList.contains("atmos-select-menu-optgroup"))
+                    menuItemMock.parentElement.classList.add("hidden");
+            }
+        }
+
+        let visibleMenuItemMocksWithHiddenOptgroup =
+            this.menuMock.querySelectorAll(".atmos-select-menu-optgroup.hidden .atmos-select-menu-item:not(.hidden)");
+        for (const menuItemMock of visibleMenuItemMocksWithHiddenOptgroup) {
+            menuItemMock.parentElement.classList.remove("hidden");
         }
     }
 
@@ -483,14 +579,6 @@ export default class AtmosSelect {
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
-        // Apply the custom classes provided by the select element's configuration.
-        if (this.selectElement.dataset.wrapperClass)
-            mocksWrapper.classList.add(this.selectElement.dataset.wrapperClass);
-        if (this.selectElement.dataset.inputClass)
-            buttonMock.classList.add(this.selectElement.dataset.inputClass);
-        if (this.selectElement.dataset.menuClass)
-            menuMock.classList.add(this.selectElement.dataset.menuClass);
-
         // Generate the option elements in the dropdown
         this.generateOptionMocks();
     }
@@ -499,6 +587,12 @@ export default class AtmosSelect {
         Redom.setChildren(this.menuMock, []);
         if (!this.selectElement.options?.length) return;
         this.menuItemMocks = [];
+
+        if (this.isLiveSearchEnabled) {
+            let searchInputMock = Redom.el("li.atmos-select-menu-control", Redom.el("input"));
+            Redom.mount(this.menuMock, searchInputMock);
+            this.searchInputMock = searchInputMock.children[0];
+        }
 
         for (const child of this.selectElement.children) {
             if (child instanceof HTMLOptGroupElement) {
