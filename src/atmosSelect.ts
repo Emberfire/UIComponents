@@ -107,7 +107,6 @@ export default class AtmosSelect {
                 this.selectElement.selectedIndex = -1;
                 nextOption.selectOption.selected = true;
 
-
                 selectElement.dispatchEvent(new CustomEvent("change", {
                     bubbles: true,
                     detail: { filterMenu: false }
@@ -153,10 +152,10 @@ export default class AtmosSelect {
 
             if (!this.selectElement.options?.length) return;
 
-            this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
+            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
             this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
-            this.updateMenuMock([ ...this.selectElement.selectedOptions ]);
+            this.updateMenuMock([...this.selectElement.selectedOptions]);
 
             if (!this.visibleOptions) this.hide();
         };
@@ -216,7 +215,7 @@ export default class AtmosSelect {
         });
         this.selectElementAttributesChangeMutationObserver.observe(selectElement, {
             attributes: true,
-            attributeFilter: [ "disabled" ]
+            attributeFilter: ["disabled"]
         });
 
         this.visibleOptions = this.selectElement.options?.length ?? 0;
@@ -287,7 +286,7 @@ export default class AtmosSelect {
                 if (target.closest(".atmos-select-menu-item.disabled")) {
                     // Don't close the menu if the user clicks on a disabled option.
                     return;
-                } if (AtmosSelect.openedSelect.selectElement.multiple) {
+                } else if (AtmosSelect.openedSelect.selectElement.multiple) {
                     return;
                 } else if (target.closest(".atmos-select-menu-optgroup") &&
                     !target.closest(".atmos-select-menu-item")) {
@@ -393,12 +392,12 @@ export default class AtmosSelect {
         // Wait for any incomplete additions of options.
         await new Promise(resolve => requestAnimationFrame(resolve));
 
-        this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
+        this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
         this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
         if (!this.selectElement.options?.length) return;
 
-        this.updateMenuMock([ ...this.selectElement.selectedOptions ]);
+        this.updateMenuMock([...this.selectElement.selectedOptions]);
     }
 
     destroy() {
@@ -569,7 +568,7 @@ export default class AtmosSelect {
         Redom.mount(mocksWrapper, buttonMock);
         this.buttonMock = buttonMock;
         if (this.selectElement.selectedIndex >= 0) {
-            this.updateButtonMock([ ...this.selectElement.selectedOptions ]?.map(so => so.textContent.trim()));
+            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
         }
 
         // Create the dropdown and insert it at the end of the body element,
