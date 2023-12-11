@@ -128,21 +128,19 @@ export default class AtmosSelect {
             }
         });
 
-        if (this.isLiveSearchEnabled) {
-            this.searchInputMock.addEventListener("keydown", (e) => {
-                if (this.hidden || !this.selectElement.options?.length) return;
+        this.searchInputMock.addEventListener("keydown", (e) => {
+            if (this.hidden || !this.selectElement.options?.length) return;
 
-                if (e.code === "Enter") {
-                    // Toggle the option menu on Enter key
-                    e.preventDefault();
-                    this.toggle();
-                    this.buttonMock.focus();
-                } else if (e.code === "ArrowDown" || e.code === "ArrowUp") {
-                    e.preventDefault();
-                    this.mocksWrapper.dispatchEvent(new KeyboardEvent("keydown", { code: e.code }));
-                }
-            });
-        }
+            if (e.code === "Enter") {
+                // Toggle the option menu on Enter key
+                e.preventDefault();
+                this.toggle();
+                this.buttonMock.focus();
+            } else if (e.code === "ArrowDown" || e.code === "ArrowUp") {
+                e.preventDefault();
+                this.mocksWrapper.dispatchEvent(new KeyboardEvent("keydown", { code: e.code }));
+            }
+        });
 
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the select menu.
@@ -161,14 +159,12 @@ export default class AtmosSelect {
         };
         selectElement.addEventListener("change", this.listeners.selectElementChangeListener);
 
-        if (this.isLiveSearchEnabled) {
-            let inputListener = () => {
-                this.filterMenuMock(this.searchInputMock.value);
-                this.positionMenuMock();
-            }
-            this.searchInputMock.addEventListener("input", inputListener);
-            this.searchInputMock.addEventListener("change", inputListener);
+        let inputListener = () => {
+            this.filterMenuMock(this.searchInputMock.value);
+            this.positionMenuMock();
         }
+        this.searchInputMock.addEventListener("input", inputListener);
+        this.searchInputMock.addEventListener("change", inputListener);
 
         // When the user clicks on an option in the menu mock, select the option in the select element
         // and set the input mock value to it.
@@ -204,6 +200,7 @@ export default class AtmosSelect {
         // Watch the select element's options for additions or removals, mirroring the structure every time.
         this.optionsChangeMutationObserver = new MutationObserver(() => {
             this.generateOptionMocks();
+            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
         });
         this.optionsChangeMutationObserver.observe(selectElement, {
             childList: true
@@ -212,10 +209,16 @@ export default class AtmosSelect {
         // Watch the select element's attributes for changes, mirroring their state in the input mock.
         this.selectElementAttributesChangeMutationObserver = new MutationObserver(() => {
             this.buttonMock.disabled = selectElement.disabled;
+
+            if (this.isLiveSearchEnabled) {
+                this.searchInputMock.classList.remove("hidden");
+            } else {
+                this.searchInputMock.classList.add("hidden");
+            }
         });
         this.selectElementAttributesChangeMutationObserver.observe(selectElement, {
             attributes: true,
-            attributeFilter: ["disabled"]
+            attributeFilter: ["disabled", "data-live-search"]
         });
 
         this.visibleOptions = this.selectElement.options?.length ?? 0;
@@ -578,20 +581,26 @@ export default class AtmosSelect {
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
+        let searchMock = Redom.el("li.atmos-select-menu-control", Redom.el("input"));
+        this.searchInputMock = searchMock.children[0];
+        if (!this.isLiveSearchEnabled) this.searchInputMock.classList.add("hidden");
+        Redom.mount(this.menuMock, searchMock);
+
         // Generate the option elements in the dropdown
         this.generateOptionMocks();
     }
 
     private generateOptionMocks() {
-        Redom.setChildren(this.menuMock, []);
-        if (!this.selectElement.options?.length) return;
-        this.menuItemMocks = [];
-
-        if (this.isLiveSearchEnabled) {
-            let searchInputMock = Redom.el("li.atmos-select-menu-control", Redom.el("input"));
-            Redom.mount(this.menuMock, searchInputMock);
-            this.searchInputMock = searchInputMock.children[0];
+        for (const menuItemMock of this.menuMock.querySelectorAll(".atmos-select-menu-item")) {
+            menuItemMock.remove();
         }
+
+        if (!this.selectElement.options?.length) {
+            this.visibleOptions = 0;
+            return;
+        }
+
+        this.menuItemMocks = [];
 
         for (const child of this.selectElement.children) {
             if (child instanceof HTMLOptGroupElement) {
@@ -639,10 +648,6 @@ export default class AtmosSelect {
 
         let selectedTickImage = Redom.el("span.atmos-select-menu-item-tick");
         Redom.mount(menuItemMock, selectedTickImage);
-
-        // Apply the custom class provided by the select element's configuration.
-        if (this.selectElement.dataset.menuItemClass)
-            menuItemMock.classList.add(this.selectElement.dataset.menuItemClass);
 
         this.menuItemMocks.push(menuItemMock);
     }
