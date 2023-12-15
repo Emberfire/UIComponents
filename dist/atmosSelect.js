@@ -39,6 +39,8 @@ export default class AtmosSelect {
             if (!this.hidden && this.isLiveSearchEnabled)
                 requestAnimationFrame(() => this.searchInputMock.focus());
         });
+        let debounced;
+        let tempValue;
         this.mocksWrapper.addEventListener("keydown", (e) => {
             if (!this.selectElement.options?.length)
                 return;
@@ -106,6 +108,23 @@ export default class AtmosSelect {
             }
             else if (e.code === "Tab") {
                 this.hide();
+            }
+            else {
+                tempValue += e.key.toLowerCase();
+                let firstAvailableOption = [...this.selectElement.options].find(o => o.textContent.toLowerCase().trim().includes(tempValue) ||
+                    o.value.toLowerCase().trim().includes(tempValue));
+                if (firstAvailableOption) {
+                    this.selectElement.selectedIndex = -1;
+                    firstAvailableOption.selected = true;
+                    this.selectElement.dispatchEvent(new Event("change"));
+                    if (!debounced)
+                        debounced = AtmosSelect.debounce(() => tempValue = "", 350);
+                    else
+                        debounced();
+                }
+                else {
+                    tempValue = "";
+                }
             }
         });
         this.searchInputMock.addEventListener("keydown", (e) => {
@@ -375,7 +394,7 @@ export default class AtmosSelect {
         console.debug(`Filtering menu.`);
         this.visibleOptions = 0;
         if (!value) {
-            for (const menuItemMock of this.menuMock.querySelectorAll(".hidden")) {
+            for (const menuItemMock of this.menuMock.querySelectorAll(".atmos-select-menu-item.hidden")) {
                 menuItemMock.classList.remove("hidden");
             }
             this.visibleOptions = this.selectElement.children.length;
@@ -500,6 +519,22 @@ export default class AtmosSelect {
         let selectedTickImage = Redom.el("span.atmos-select-menu-item-tick");
         Redom.mount(menuItemMock, selectedTickImage);
         this.menuItemMocks.push(menuItemMock);
+    }
+    static debounce(func, wait = 50, immediate) {
+        let timeout;
+        return function () {
+            const context = this, args = arguments;
+            const callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(function () {
+                timeout = null;
+                if (!immediate) {
+                    func.apply(context, args);
+                }
+            }, wait);
+            if (callNow)
+                func.apply(context, args);
+        };
     }
 }
 window["AtmosSelect"] = AtmosSelect;

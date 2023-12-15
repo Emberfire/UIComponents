@@ -49,6 +49,8 @@ export default class AtmosSelect {
             if (!this.hidden && this.isLiveSearchEnabled) requestAnimationFrame(() => this.searchInputMock.focus());
         });
 
+        let debounced: () => void;
+        let tempValue: string;
         // Keyboard navigation to match the native select element's feature
         this.mocksWrapper.addEventListener("keydown", (e) => {
             if (!this.selectElement.options?.length) return;
@@ -91,7 +93,7 @@ export default class AtmosSelect {
                 // or cycle back to the last visible one.
                 let nextOption = this.selectedMenuItemMock;
                 let i = this.menuItemMocks.indexOf(nextOption);
-                let previousOption;
+                let previousOption: HTMLLIElement;
                 do {
                     previousOption = nextOption;
                     nextOption = this.menuItemMocks[--i] as HTMLLIElement;
@@ -125,6 +127,21 @@ export default class AtmosSelect {
                 if (!this.hidden && this.isLiveSearchEnabled) requestAnimationFrame(() => this.searchInputMock.focus());
             } else if (e.code === "Tab") {
                 this.hide()
+            } else {
+                tempValue += e.key.toLowerCase();
+                let firstAvailableOption = [...this.selectElement.options].find(o =>
+                    o.textContent.toLowerCase().trim().includes(tempValue) ||
+                    o.value.toLowerCase().trim().includes(tempValue));
+                if (firstAvailableOption) {
+                    this.selectElement.selectedIndex = -1;
+                    firstAvailableOption.selected = true;
+                    this.selectElement.dispatchEvent(new Event("change"));
+
+                    if (!debounced) debounced = AtmosSelect.debounce(() => tempValue = "", 350);
+                    else debounced();
+                } else {
+                    tempValue = "";
+                }
             }
         });
 
@@ -189,7 +206,7 @@ export default class AtmosSelect {
         });
 
         // When the user clicks on any of the hidden select element's labels, focus the input mock instead.
-        this.listeners.labelClickListener = (e) => {
+        this.listeners.labelClickListener = (e: MouseEvent) => {
             e.stopPropagation();
             this.buttonMock.focus();
         }
@@ -333,7 +350,7 @@ export default class AtmosSelect {
         // }, { capture: true, passive: true });
     }
 
-    static get(element) {
+    static get(element: HTMLElement) {
         return this.selects.get(element);
     }
 
@@ -487,7 +504,7 @@ export default class AtmosSelect {
 
         // If input value is empty, show all the options.
         if (!value) {
-            for (const menuItemMock of this.menuMock.querySelectorAll(".hidden")) {
+            for (const menuItemMock of this.menuMock.querySelectorAll(".atmos-select-menu-item.hidden")) {
                 menuItemMock.classList.remove("hidden");
             }
 
@@ -650,6 +667,52 @@ export default class AtmosSelect {
         Redom.mount(menuItemMock, selectedTickImage);
 
         this.menuItemMocks.push(menuItemMock);
+    }
+
+    private static debounce(
+        func: Function,
+        wait: number = 50,
+        immediate?: boolean
+    ): any {
+        // 'private' variable for instance
+        // The returned function will be able to reference this due to closure.
+        // Each call to the returned function will share this common timer.
+        let timeout: number;
+
+        // Calling debounce returns a new anonymous function
+        return function () {
+            // reference the context and args for the setTimeout function
+            const context = this,
+                args = arguments;
+
+            // Should the function be called now? If immediate is true
+            //   and not already in a timeout then the answer is: Yes
+            const callNow = immediate && !timeout;
+
+            // This is the basic debounce behaviour where you can call this
+            //   function several times, but it will only execute once
+            //   [before or after imposing a delay].
+            //   Each time the returned function is called, the timer starts over.
+            clearTimeout(timeout);
+
+            // Set the new timeout
+            timeout = setTimeout(function () {
+                // Inside the timeout function, clear the timeout variable
+                // which will let the next execution run when in 'immediate' mode
+                timeout = null;
+
+                // Check if the function already ran with the immediate flag
+                if (!immediate) {
+                    // Call the original function with apply
+                    // apply lets you define the 'this' object as well as the arguments
+                    //    (both captured before setTimeout)
+                    func.apply(context, args);
+                }
+            }, wait);
+
+            // Immediate mode and no wait timer? Execute the function..
+            if (callNow) func.apply(context, args);
+        };
     }
 }
 
