@@ -226,6 +226,7 @@ export default class AtmosSelect {
         // Watch the select element's attributes for changes, mirroring their state in the input mock.
         this.selectElementAttributesChangeMutationObserver = new MutationObserver(() => {
             this.buttonMock.disabled = selectElement.disabled;
+            this.buttonMock.title = selectElement.title;
 
             if (this.isLiveSearchEnabled) {
                 this.searchInputMock.classList.remove("hidden");
@@ -235,7 +236,7 @@ export default class AtmosSelect {
         });
         this.selectElementAttributesChangeMutationObserver.observe(selectElement, {
             attributes: true,
-            attributeFilter: ["disabled", "data-live-search"]
+            attributeFilter: ["disabled", "title", "data-live-search"]
         });
 
         this.visibleOptions = this.selectElement.options?.length ?? 0;
@@ -584,6 +585,7 @@ export default class AtmosSelect {
         let buttonMock = Redom.el("button.atmos-select-button", this.selectElement.dataset.placeholder ?? "None selected", {
             type: "button",
             disabled: this.selectElement.disabled,
+            title: this.selectElement.title
         }) as HTMLButtonElement;
         Redom.mount(mocksWrapper, buttonMock);
         this.buttonMock = buttonMock;
