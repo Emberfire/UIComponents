@@ -22,7 +22,7 @@
     position: absolute;
     max-height: 20rem;
     overflow: auto;
-    padding: 0;
+    padding: 0.25rem 0;
     border: 1px solid grey;
     background-color: white;
 }
