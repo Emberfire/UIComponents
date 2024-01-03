@@ -19,6 +19,7 @@ label {
     display: inline-block;
     width: 10rem;
 }
+/*
 
 .atmos-select-wrapper {
     margin-top: 0.5rem;
@@ -70,6 +71,35 @@ label {
     border: none;
 }
 
+.atmos-select-menu-control input {
+    height: 100%;
+    width: 100%;
+
+    appearance: none;
+
+    border: none;
+
+    background-color: transparent;
+
+    padding: .5rem .75rem;
+    margin: 0;
+
+    font-size: .875rem;
+    line-height: 1.5rem;
+    font-weight: 400;
+
+    outline: none;
+
+    &:hover {
+        background-color: #fafafa;
+    }
+
+    &:focus {
+        background-color: #fafafa;
+        outline: none;
+    }
+}
+
 .atmos-select-menu-item {
     user-select: none;
     padding: 0.5rem 0.75rem;
@@ -118,3 +148,4 @@ label {
     background-image: url("../test/check.png");
     background-size: contain;
 }
+*/

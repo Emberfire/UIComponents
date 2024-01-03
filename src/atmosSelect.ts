@@ -333,8 +333,8 @@ export default class AtmosSelect {
         let initialRect: DOMRect;
         // Scroll-linked positioning for the menu mock. Disabled until a more elegant way is found to
         // position menu without causing so much reflow and triggering browser warnings.
-        window.addEventListener("scroll", () => {
-            if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden) return;
+        window.addEventListener("scroll", (e) => {
+            if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden || e.target === AtmosSelect.openedSelect.menuMock) return;
 
             let buttonRect = AtmosSelect.openedSelect.buttonMock.getBoundingClientRect();
             if (!initialRect) initialRect = buttonRect;
@@ -343,8 +343,8 @@ export default class AtmosSelect {
                 `translate(${buttonRect.right - initialRect.right}px, ${buttonRect.bottom - initialRect.bottom}px)`;
         }, { capture: true, passive: true });
 
-        window.addEventListener("scrollend", () => {
-            if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden) return;
+        window.addEventListener("scrollend", (e) => {
+            if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden || e.target === AtmosSelect.openedSelect.menuMock) return;
 
             AtmosSelect.openedSelect.positionMenuMock();
             initialRect = null;
