@@ -11,6 +11,7 @@
     padding: 0.3rem 2rem 0.3rem 0.5rem;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

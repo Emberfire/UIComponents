@@ -2,7 +2,7 @@
 import * as Redom from "redom";
 
 export default class AtmosSelect {
-    private static selects = new Map<HTMLElement, AtmosSelect>();
+    private static selects = new Map<HTMLSelectElement, AtmosSelect>();
     private static openedSelect: AtmosSelect;
 
     private selectElement: HTMLSelectElement;
@@ -205,12 +205,12 @@ export default class AtmosSelect {
             }));
         });
 
-        // When the user clicks on any of the hidden select element's labels, focus the input mock instead.
+        // When the user clicks on any of the hidden select element's labels, focus the button mock instead.
         this.listeners.labelClickListener = (e: MouseEvent) => {
             e.stopPropagation();
             this.buttonMock.focus();
         }
-        for (const label of selectElement.labels) {
+        for (const label of this.selectElement.labels) {
             label?.addEventListener("click", this.listeners.labelClickListener);
         }
 
@@ -225,8 +225,8 @@ export default class AtmosSelect {
 
         // Watch the select element's attributes for changes, mirroring their state in the input mock.
         this.selectElementAttributesChangeMutationObserver = new MutationObserver(() => {
-            this.buttonMock.disabled = selectElement.disabled;
-            this.buttonMock.title = selectElement.title;
+            this.buttonMock.disabled = this.selectElement.disabled;
+            this.buttonMock.title = this.selectElement.title;
 
             if (this.isLiveSearchEnabled) {
                 this.searchInputMock.classList.remove("hidden");
@@ -234,14 +234,14 @@ export default class AtmosSelect {
                 this.searchInputMock.classList.add("hidden");
             }
         });
-        this.selectElementAttributesChangeMutationObserver.observe(selectElement, {
+        this.selectElementAttributesChangeMutationObserver.observe(this.selectElement, {
             attributes: true,
             attributeFilter: ["disabled", "title", "data-live-search"]
         });
 
         this.visibleOptions = this.selectElement.options?.length ?? 0;
 
-        AtmosSelect.selects.set(selectElement, this);
+        AtmosSelect.selects.set(this.selectElement, this);
     }
 
     private get isLiveSearchEnabled() {
@@ -264,7 +264,7 @@ export default class AtmosSelect {
         new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const addedNode of mutation.addedNodes) {
-                    if (!(addedNode instanceof HTMLElement)) continue;
+                    if (!(addedNode instanceof HTMLSelectElement)) continue;
 
                     let toggles = [];
                     if (addedNode.dataset?.toggles === "select") toggles.push(addedNode as HTMLSelectElement);
@@ -279,7 +279,7 @@ export default class AtmosSelect {
                 }
 
                 for (const removedNode of mutation.removedNodes) {
-                    if (!(removedNode instanceof HTMLElement)) continue;
+                    if (!(removedNode instanceof HTMLSelectElement)) continue;
 
                     let toggles = [];
                     if (removedNode.dataset?.toggles === "select") toggles.push(removedNode as HTMLSelectElement);
@@ -351,7 +351,7 @@ export default class AtmosSelect {
         // }, { capture: true, passive: true });
     }
 
-    static get(element: HTMLElement) {
+    static get(element: HTMLSelectElement) {
         return this.selects.get(element);
     }
 
@@ -601,7 +601,7 @@ export default class AtmosSelect {
         this.menuMock = menuMock;
 
         let searchMock = Redom.el("li.atmos-select-menu-control", Redom.el("input"));
-        this.searchInputMock = searchMock.children[0];
+        this.searchInputMock = searchMock.children[0]as HTMLInputElement;
         if (!this.isLiveSearchEnabled) this.searchInputMock.classList.add("hidden");
         Redom.mount(this.menuMock, searchMock);
 
@@ -644,7 +644,7 @@ export default class AtmosSelect {
         });
         Redom.mount(parent, menuItemMock);
 
-        if (option.value !== option.textContent && this.selectElement.dataset.showValues !== "false") {
+        if (option.value !== option.textContent && this.selectElement.dataset.showValues === "true") {
             let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.value);
             Redom.mount(menuItemMock, menuItemSubtext);
         }
@@ -679,7 +679,7 @@ export default class AtmosSelect {
         // 'private' variable for instance
         // The returned function will be able to reference this due to closure.
         // Each call to the returned function will share this common timer.
-        let timeout: number;
+        let timeout;
 
         // Calling debounce returns a new anonymous function
         return function () {
