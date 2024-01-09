@@ -7,7 +7,6 @@ export default class AtmosSelect {
 
     private selectElement: HTMLSelectElement;
     private buttonMock: HTMLButtonElement;
-    private mocksWrapper: HTMLElement;
     private menuMock: HTMLElement;
     private selectedMenuItemMock: HTMLLIElement;
     private searchInputMock: HTMLInputElement;
@@ -52,7 +51,7 @@ export default class AtmosSelect {
         let debounced: () => void;
         let tempValue: string = "";
         // Keyboard navigation to match the native select element's feature
-        this.mocksWrapper.addEventListener("keydown", (e) => {
+        this.buttonMock.addEventListener("keydown", (e) => {
             if (!this.selectElement.options?.length) return;
 
             if (e.code === "ArrowDown") {
@@ -162,7 +161,7 @@ export default class AtmosSelect {
                 this.buttonMock.focus();
             } else if (e.code === "ArrowDown" || e.code === "ArrowUp") {
                 e.preventDefault();
-                this.mocksWrapper.dispatchEvent(new KeyboardEvent("keydown", { code: e.code }));
+                this.buttonMock.dispatchEvent(new KeyboardEvent("keydown", { code: e.code }));
             }
         });
 
@@ -283,7 +282,7 @@ export default class AtmosSelect {
         new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const addedNode of mutation.addedNodes) {
-                    if (!(addedNode instanceof HTMLSelectElement)) continue;
+                    if (!(addedNode instanceof HTMLElement)) continue;
 
                     let toggles = [];
                     if (addedNode.dataset?.toggle === "select") toggles.push(addedNode as HTMLSelectElement);
@@ -298,7 +297,7 @@ export default class AtmosSelect {
                 }
 
                 for (const removedNode of mutation.removedNodes) {
-                    if (!(removedNode instanceof HTMLSelectElement)) continue;
+                    if (!(removedNode instanceof HTMLElement)) continue;
 
                     let toggles = [];
                     if (removedNode.dataset?.toggle === "select") toggles.push(removedNode as HTMLSelectElement);
@@ -454,7 +453,7 @@ export default class AtmosSelect {
         this.selectElementAttributesChangeMutationObserver.disconnect();
 
         // Remove the mocks from the DOM tree and the select collection.
-        this.mocksWrapper.remove();
+        this.buttonMock.remove();
         this.menuMock.remove();
         AtmosSelect.selects.delete(this.selectElement);
 
@@ -464,7 +463,6 @@ export default class AtmosSelect {
         this.selectElement.style.removeProperty("display");
 
         this.selectElement = null;
-        this.mocksWrapper = null;
         this.menuMock = null;
         this.selectedMenuItemMock = null;
         this.optionsChangeMutationObserver = null;
@@ -596,17 +594,13 @@ export default class AtmosSelect {
     }
 
     private generateMocks() {
-        let mocksWrapper = Redom.el("div.atmos-select-wrapper");
-        // Insert the select mock right after the select.
-        this.selectElement.insertAdjacentElement("afterend", mocksWrapper);
-        this.mocksWrapper = mocksWrapper;
-
         let buttonMock = Redom.el("button.atmos-select-button", this.placeholder ?? "None selected", {
             type: "button",
             disabled: this.selectElement.disabled,
             title: this.selectElement.title
         }) as HTMLButtonElement;
-        Redom.mount(mocksWrapper, buttonMock);
+        this.selectElement.insertAdjacentElement("afterend", buttonMock);
+        
         this.buttonMock = buttonMock;
         if (this.selectElement.selectedIndex >= 0) {
             this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));

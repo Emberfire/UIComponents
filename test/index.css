@@ -19,11 +19,13 @@ label {
     display: inline-block;
     width: 10rem;
 }
-/*
 
-.atmos-select-wrapper {
-    margin-top: 0.5rem;
+.wrapper {
+    display: block;
+    position: relative;
 }
+
+/*
 
 .atmos-select-button {
     height: 2.5rem;
