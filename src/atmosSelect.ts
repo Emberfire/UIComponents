@@ -50,7 +50,7 @@ export default class AtmosSelect {
         });
 
         let debounced: () => void;
-        let tempValue: string;
+        let tempValue: string = "";
         // Keyboard navigation to match the native select element's feature
         this.mocksWrapper.addEventListener("keydown", (e) => {
             if (!this.selectElement.options?.length) return;
@@ -128,6 +128,13 @@ export default class AtmosSelect {
             } else if (e.code === "Tab") {
                 this.hide()
             } else {
+                if (!this.isHiddenLiveSearchEnabled) return;
+
+                let charCode = e.key.toLowerCase().charCodeAt(0);
+                // If the input character is not a lowercase letter or number or a modifier key was pressed, ignore the input.
+                if (e.ctrlKey || e.altKey || e.metaKey || e.key.length > 1 || charCode < 48 || (charCode > 57 && charCode < 97) || charCode > 122)
+                    return;
+
                 tempValue += e.key.toLowerCase();
                 let firstAvailableOption = [...this.selectElement.options].find(o =>
                     o.textContent.toLowerCase().trim().includes(tempValue) ||
@@ -248,6 +255,18 @@ export default class AtmosSelect {
         return this.selectElement.dataset?.liveSearch === "true";
     }
 
+    private get isHiddenLiveSearchEnabled() {
+        return this.selectElement.dataset?.hiddenLiveSearch !== "false";
+    }
+
+    private get isSubtextShown() {
+        return this.selectElement.dataset.subtext === "true";
+    }
+
+    private get placeholder() {
+        return this.selectElement.dataset.placeholder;
+    }
+
     private get hidden() {
         return this.menuMock.classList.contains("hidden");
     }
@@ -267,7 +286,7 @@ export default class AtmosSelect {
                     if (!(addedNode instanceof HTMLSelectElement)) continue;
 
                     let toggles = [];
-                    if (addedNode.dataset?.toggles === "select") toggles.push(addedNode as HTMLSelectElement);
+                    if (addedNode.dataset?.toggle === "select") toggles.push(addedNode as HTMLSelectElement);
                     toggles.push(...addedNode.querySelectorAll<HTMLSelectElement>("[data-toggle=select]"));
 
                     for (const toggle of toggles) {
@@ -282,7 +301,7 @@ export default class AtmosSelect {
                     if (!(removedNode instanceof HTMLSelectElement)) continue;
 
                     let toggles = [];
-                    if (removedNode.dataset?.toggles === "select") toggles.push(removedNode as HTMLSelectElement);
+                    if (removedNode.dataset?.toggle === "select") toggles.push(removedNode as HTMLSelectElement);
                     toggles.push(...removedNode.querySelectorAll<HTMLSelectElement>("[data-toggle=select]"));
 
                     for (const toggle of toggles) {
@@ -468,12 +487,12 @@ export default class AtmosSelect {
     private updateButtonMock(values: string[]) {
         if (!this.selectElement.multiple) {
             if (!values.length || !values[0] === null || values[0] === undefined)
-                values[0] = this.selectElement.dataset.placeholder ?? "None selected";
+                values[0] = this.placeholder ?? "None selected";
 
             this.buttonMock.childNodes[0].textContent = values?.[0]?.toString();
         } else {
             this.buttonMock.childNodes[0].textContent =
-                values.length <= 3 ? values.join(", ") || this.selectElement.dataset.placeholder : `${values.length} options selected`;
+                values.length <= 3 ? values.join(", ") || this.placeholder : `${values.length} options selected`;
         }
     }
 
@@ -582,7 +601,7 @@ export default class AtmosSelect {
         this.selectElement.insertAdjacentElement("afterend", mocksWrapper);
         this.mocksWrapper = mocksWrapper;
 
-        let buttonMock = Redom.el("button.atmos-select-button", this.selectElement.dataset.placeholder ?? "None selected", {
+        let buttonMock = Redom.el("button.atmos-select-button", this.placeholder ?? "None selected", {
             type: "button",
             disabled: this.selectElement.disabled,
             title: this.selectElement.title
@@ -601,7 +620,7 @@ export default class AtmosSelect {
         this.menuMock = menuMock;
 
         let searchMock = Redom.el("li.atmos-select-menu-control", Redom.el("input"));
-        this.searchInputMock = searchMock.children[0]as HTMLInputElement;
+        this.searchInputMock = searchMock.children[0] as HTMLInputElement;
         if (!this.isLiveSearchEnabled) this.searchInputMock.classList.add("hidden");
         Redom.mount(this.menuMock, searchMock);
 
@@ -644,7 +663,7 @@ export default class AtmosSelect {
         });
         Redom.mount(parent, menuItemMock);
 
-        if (option.value !== option.textContent && this.selectElement.dataset.showValues === "true") {
+        if (option.value !== option.textContent && this.isSubtextShown) {
             let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.value);
             Redom.mount(menuItemMock, menuItemSubtext);
         }
