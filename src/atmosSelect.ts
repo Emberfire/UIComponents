@@ -174,7 +174,6 @@ export default class AtmosSelect {
             if (!this.selectElement.options?.length) return;
 
             this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
-            this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
             this.updateMenuMock([...this.selectElement.selectedOptions]);
 
@@ -432,7 +431,6 @@ export default class AtmosSelect {
         await new Promise(resolve => requestAnimationFrame(resolve));
 
         this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
-        this.updateButtonMockTitle(this.selectElement.selectedOptions[0]?.title);
 
         if (!this.selectElement.options?.length) return;
 
@@ -492,12 +490,6 @@ export default class AtmosSelect {
             this.buttonMock.childNodes[0].textContent =
                 values.length <= 3 ? values.join(", ") || this.placeholder : `${values.length} options selected`;
         }
-    }
-
-    private updateButtonMockTitle(value?: string) {
-        if (!value === null || value === undefined) value = "";
-
-        this.buttonMock.title = value?.toString();
     }
 
     private updateMenuMock(selectedOptions: HTMLOptionElement[]) {
@@ -668,7 +660,6 @@ export default class AtmosSelect {
         if (option.selected && !option.disabled) {
             menuItemMock.classList.add("selected");
             this.selectedMenuItemMock = menuItemMock as HTMLLIElement;
-            this.updateButtonMockTitle(this.selectedMenuItemMock.title);
         }
 
         if (option.disabled ||
