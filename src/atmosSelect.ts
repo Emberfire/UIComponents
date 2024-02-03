@@ -485,9 +485,9 @@ export default class AtmosSelect {
             if (!values.length || !values[0] === null || values[0] === undefined)
                 values[0] = this.placeholder ?? "None selected";
 
-            this.buttonMock.childNodes[0].textContent = values?.[0]?.toString();
+            this.buttonMock.children[0].textContent = values?.[0]?.toString();
         } else {
-            this.buttonMock.childNodes[0].textContent =
+            this.buttonMock.children[0].textContent =
                 values.length <= 3 ? values.join(", ") || this.placeholder : `${values.length} options selected`;
         }
     }
@@ -586,7 +586,7 @@ export default class AtmosSelect {
     }
 
     private generateMocks() {
-        let buttonMock = Redom.el("button.atmos-select-button", this.placeholder ?? "None selected", {
+        let buttonMock = Redom.el("button.atmos-select-button", Redom.el("span", this.placeholder ?? "None selected"), {
             type: "button",
             disabled: this.selectElement.disabled,
             title: this.selectElement.title

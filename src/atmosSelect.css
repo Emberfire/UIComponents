@@ -1,4 +1,5 @@
-.hidden {
+.hidden,
+.hidden + .atmos-select-button {
     display: none !important;
 }
 
@@ -8,9 +9,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+    span {
+        width: 100%;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .atmos-select-menu {
