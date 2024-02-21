@@ -262,7 +262,7 @@ export default class AtmosSelect {
     }
 
     private get placeholder() {
-        return this.selectElement.dataset.placeholder;
+        return this.selectElement.dataset.placeholder ?? "None selected";
     }
 
     private get hidden() {
@@ -483,7 +483,7 @@ export default class AtmosSelect {
     private updateButtonMock(values: string[]) {
         if (!this.selectElement.multiple) {
             if (!values.length || !values[0] === null || values[0] === undefined)
-                values[0] = this.placeholder ?? "None selected";
+                values[0] = this.placeholder;
 
             this.buttonMock.children[0].textContent = values?.[0]?.toString();
         } else {
@@ -527,8 +527,11 @@ export default class AtmosSelect {
             // First normalize the values before comparing them.
             let normalizedOptionText = menuItemMock.selectOption.textContent.toLowerCase().trim();
             let normalizedOptionValue = menuItemMock.selectOption.value.toLowerCase().trim();
+            let normalizedOptionSubtext = menuItemMock.selectOption.dataset.subtext?.toLowerCase().trim() ?? "";
             let normalizedText = value.toLowerCase().trim();
-            if (menuItemMock.selectOption.textContent === value || menuItemMock.selectOption.value === value) {
+            if (menuItemMock.selectOption.textContent === value ||
+                menuItemMock.selectOption.dataset.subtext === value ||
+                menuItemMock.selectOption.value === value) {
                 // Case in which we have a perfectly matching option.
                 // Show the option mock.
                 menuItemMock.classList.remove("hidden");
@@ -536,7 +539,9 @@ export default class AtmosSelect {
                     menuItemMock.parentElement.classList.remove("hidden");
 
                 this.visibleOptions++;
-            } else if (normalizedOptionText.includes(normalizedText) || normalizedOptionValue.includes(normalizedText)) {
+            } else if (normalizedOptionText.includes(normalizedText) ||
+                normalizedOptionSubtext.includes(normalizedText) ||
+                normalizedOptionValue.includes(normalizedText)) {
                 // Case in which we have a partially matching option.
                 menuItemMock.classList.remove("hidden");
                 if (menuItemMock.parentElement.classList.contains("atmos-select-menu-optgroup"))
@@ -586,7 +591,7 @@ export default class AtmosSelect {
     }
 
     private generateMocks() {
-        let buttonMock = Redom.el("button.atmos-select-button", Redom.el("span", this.placeholder ?? "None selected"), {
+        let buttonMock = Redom.el("button.atmos-select-button", Redom.el("span", this.placeholder), {
             type: "button",
             disabled: this.selectElement.disabled,
             title: this.selectElement.title
@@ -644,14 +649,17 @@ export default class AtmosSelect {
 
     private generateOptionMock(parent: HTMLElement, option: HTMLOptionElement) {
         // Create an option element with its tick box, which will remain hidden until the element is selected.
-        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-select-menu-item", option.textContent, {
+        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-select-menu-item", {
             title: option.title
         });
         Redom.mount(parent, menuItemMock);
 
-        if (option.value !== option.textContent && this.isSubtextShown) {
-            let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.value);
-            Redom.mount(menuItemMock, menuItemSubtext);
+        let textMock = Redom.el("span", option.textContent);
+        Redom.mount(menuItemMock, textMock);
+
+        if (this.isSubtextShown && (option.dataset.subtext || option.value !== option.textContent)) {
+            let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.dataset.subtext || option.value);
+            Redom.mount(textMock, menuItemSubtext);
         }
 
         menuItemMock["selectOption"] = option;

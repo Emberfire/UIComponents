@@ -11,15 +11,15 @@
 <label>
     Atmos select
     <span class="wrapper">
-        <select data-toggle="select" data-placeholder="None selected">
+        <select data-toggle="select" data-placeholder="None selected" data-subtext="true" data-live-search="true">
             <!-- Options without a value attribute but with text -->
             <option>Banana</option>
             <!-- Options with a value attribute and no text -->
             <option value="apple-1"></option>
             <!-- Options with both value attribute and text -->
-            <option value="carrot-3">Carrot</option>
+            <option data-subtext="Sweet carrot" value="carrot-3">Carrot</option>
             <!-- Options with no value attribute and no text -->
-            <option></option>
+            <option data-subtext="No carrot"></option>
             <!-- Disabled options -->
             <option disabled>Tangerine</option>
             <!-- Options inside optgroups -->
