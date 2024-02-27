@@ -426,13 +426,8 @@ export default class AtmosSelect {
         });
     }
 
-    async refreshMenu() {
-        // Wait for any incomplete additions of options.
-        await new Promise(resolve => requestAnimationFrame(resolve));
-
+    refreshMenu() {
         this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
-
-        if (!this.selectElement.options?.length) return;
 
         this.updateMenuMock([...this.selectElement.selectedOptions]);
     }
@@ -496,6 +491,11 @@ export default class AtmosSelect {
         console.debug(`Update menu's options.`);
 
         for (const menuItemMock of this.menuItemMocks) {
+            menuItemMock.children[0].childNodes[0].textContent = menuItemMock.selectOption.textContent;
+            let valueSubtextElement = menuItemMock.querySelector(".atmos-select-menu-item-value");
+            if (valueSubtextElement)
+                valueSubtextElement.textContent = menuItemMock.selectOption.dataset.subtext || menuItemMock.selectOption.value;
+
             menuItemMock?.classList.remove("selected");
         }
 
