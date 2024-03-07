@@ -173,7 +173,11 @@ export default class AtmosSelect {
 
             if (!this.selectElement.options?.length) return;
 
-            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
+            this.updateButtonMock([...this.selectElement.selectedOptions]
+                ?.map(so =>
+                    so.textContent.trim() ||
+                    so.dataset.subtext?.trim() ||
+                    so.value.trim()));
 
             this.updateMenuMock([...this.selectElement.selectedOptions]);
 
@@ -228,7 +232,12 @@ export default class AtmosSelect {
             if (this.selectElement.options.length !== this.menuItemMocks.length ||
                 [...this.selectElement.options].some(o => !o.selectMenuOption)) {
                 this.generateOptionMocks();
-                this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
+
+                this.updateButtonMock([...this.selectElement.selectedOptions]
+                    ?.map(so =>
+                        so.textContent.trim() ||
+                        so.dataset.subtext?.trim() ||
+                        so.value.trim()));
             }
         });
         this.optionsChangeMutationObserver.observe(selectElement, {
@@ -445,7 +454,12 @@ export default class AtmosSelect {
             this.updateMenuMock([...this.selectElement.selectedOptions]);
         }
 
-        this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
+
+        this.updateButtonMock([...this.selectElement.selectedOptions]
+            ?.map(so =>
+                so.textContent.trim() ||
+                so.dataset.subtext?.trim() ||
+                so.value.trim()));
     }
 
     destroy() {
@@ -507,7 +521,16 @@ export default class AtmosSelect {
         console.debug(`Update menu's options.`);
 
         for (const menuItemMock of this.menuItemMocks) {
-            menuItemMock.children[0].childNodes[0].textContent = menuItemMock.selectOption.textContent;
+            // The option mock might not have a text or value because
+            // the datalist option does not have one either.
+            if (!menuItemMock.children[0].childNodes[0]) {
+                // In this case childNodes[0] will return undefined because
+                // there is no text node there. Instead, we create it here.
+                menuItemMock.children[0].insertAdjacentHTML("afterbegin", menuItemMock.selectOption.textContent);
+            } else {
+                menuItemMock.children[0].childNodes[0].textContent = menuItemMock.selectOption.textContent;
+            }
+
             let valueSubtextElement = menuItemMock.querySelector(".atmos-select-menu-item-value");
             if (valueSubtextElement)
                 valueSubtextElement.textContent = menuItemMock.selectOption.dataset.subtext || menuItemMock.selectOption.value;
@@ -613,10 +636,14 @@ export default class AtmosSelect {
             title: this.selectElement.title
         }) as HTMLButtonElement;
         this.selectElement.insertAdjacentElement("afterend", buttonMock);
-        
+
         this.buttonMock = buttonMock;
         if (this.selectElement.selectedIndex >= 0) {
-            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so => so.textContent.trim()));
+            this.updateButtonMock([...this.selectElement.selectedOptions]
+                ?.map(so =>
+                    so.textContent.trim() ||
+                    so.dataset.subtext?.trim() ||
+                    so.value.trim()));
         }
 
         // Create the dropdown and insert it at the end of the body element,
