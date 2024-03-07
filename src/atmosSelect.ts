@@ -264,8 +264,8 @@ export default class AtmosSelect {
         return this.selectElement.dataset?.hiddenLiveSearch !== "false";
     }
 
-    private get isSubtextShown() {
-        return this.selectElement.dataset.subtext === "true";
+    private get areValuesShownAsSubtext() {
+        return this.selectElement.dataset.showValuesAsSubtext === "true";
     }
 
     private get placeholder() {
@@ -354,25 +354,25 @@ export default class AtmosSelect {
             if (!AtmosSelect.openedSelect.hidden) AtmosSelect.openedSelect.positionMenuMock();
         });
 
-        let initialRect: DOMRect;
-        // Scroll-linked positioning for the menu mock. Disabled until a more elegant way is found to
-        // position menu without causing so much reflow and triggering browser warnings.
-        window.addEventListener("scroll", (e) => {
-            if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden || e.target === AtmosSelect.openedSelect.menuMock) return;
-
-            let buttonRect = AtmosSelect.openedSelect.buttonMock.getBoundingClientRect();
-            if (!initialRect) initialRect = buttonRect;
-
-            AtmosSelect.openedSelect.menuMock.style.transform =
-                `translate(${buttonRect.right - initialRect.right}px, ${buttonRect.bottom - initialRect.bottom}px)`;
-        }, { capture: true, passive: true });
-
-        window.addEventListener("scrollend", (e) => {
-            if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden || e.target === AtmosSelect.openedSelect.menuMock) return;
-
-            AtmosSelect.openedSelect.positionMenuMock();
-            initialRect = null;
-        }, { capture: true, passive: true });
+        // let initialRect: DOMRect;
+        // // Scroll-linked positioning for the menu mock. Disabled until a more elegant way is found to
+        // // position menu without causing so much reflow and triggering browser warnings.
+        // window.addEventListener("scroll", (e) => {
+        //     if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden || e.target === AtmosSelect.openedSelect.menuMock) return;
+        //
+        //     let buttonRect = AtmosSelect.openedSelect.buttonMock.getBoundingClientRect();
+        //     if (!initialRect) initialRect = buttonRect;
+        //
+        //     AtmosSelect.openedSelect.menuMock.style.transform =
+        //         `translate(${buttonRect.right - initialRect.right}px, ${buttonRect.bottom - initialRect.bottom}px)`;
+        // }, { capture: true, passive: true });
+        //
+        // window.addEventListener("scrollend", (e) => {
+        //     if (!AtmosSelect.openedSelect || AtmosSelect.openedSelect.hidden || e.target === AtmosSelect.openedSelect.menuMock) return;
+        //
+        //     AtmosSelect.openedSelect.positionMenuMock();
+        //     initialRect = null;
+        // }, { capture: true, passive: true });
     }
 
     static get(element: HTMLSelectElement) {
@@ -673,7 +673,7 @@ export default class AtmosSelect {
         let textMock = Redom.el("span", option.textContent);
         Redom.mount(menuItemMock, textMock);
 
-        if (this.isSubtextShown && (option.dataset.subtext || option.value !== option.textContent)) {
+        if (option.dataset.subtext || (this.areValuesShownAsSubtext && option.value !== option.textContent)) {
             let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.dataset.subtext || option.value);
             Redom.mount(textMock, menuItemSubtext);
         }
