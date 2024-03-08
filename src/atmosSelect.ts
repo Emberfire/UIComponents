@@ -16,6 +16,8 @@ export default class AtmosSelect {
     private listeners: any = {};
     private visibleOptions: number = 0;
     private menuItemMocks = new Array<HTMLLIElement>();
+    // @ts-ignore Not yet in DOM typings.
+    private static customHighlight: Highlight;
 
     constructor(selectElement: HTMLSelectElement) {
         if (AtmosSelect.selects.has(selectElement)) return;
@@ -212,6 +214,8 @@ export default class AtmosSelect {
                 bubbles: true,
                 detail: { filterMenu: false }
             }));
+
+            this.buttonMock.focus();
         });
 
         // When the user clicks on any of the hidden select element's labels, focus the button mock instead.
@@ -382,6 +386,14 @@ export default class AtmosSelect {
         //     AtmosSelect.openedSelect.positionMenuMock();
         //     initialRect = null;
         // }, { capture: true, passive: true });
+
+        // @ts-ignore Not yet in DOM typings.
+        if (CSS.highlights) {
+            // @ts-ignore Not yet in DOM typings.
+            this.customHighlight = new Highlight();
+            // @ts-ignore Not yet in DOM typings.
+            CSS.highlights.set("atmos-select-highlight", this.customHighlight);
+        }
     }
 
     static get(element: HTMLSelectElement) {
@@ -558,6 +570,7 @@ export default class AtmosSelect {
             }
 
             this.visibleOptions = this.selectElement.children.length;
+            AtmosSelect.customHighlight?.clear();
             return;
         }
 
@@ -578,6 +591,12 @@ export default class AtmosSelect {
                     menuItemMock.parentElement.classList.remove("hidden");
 
                 this.visibleOptions++;
+
+                this.adjustHighlightRange(menuItemMock,
+                    normalizedOptionText,
+                    normalizedOptionSubtext,
+                    normalizedOptionValue,
+                    normalizedText);
             } else if (normalizedOptionText.includes(normalizedText) ||
                 normalizedOptionSubtext.includes(normalizedText) ||
                 normalizedOptionValue.includes(normalizedText)) {
@@ -587,11 +606,19 @@ export default class AtmosSelect {
                     menuItemMock.parentElement.classList.remove("hidden");
 
                 this.visibleOptions++;
+
+                this.adjustHighlightRange(menuItemMock,
+                    normalizedOptionText,
+                    normalizedOptionSubtext,
+                    normalizedOptionValue,
+                    normalizedText);
             } else {
                 // Case in which we have a non-matching option and must hide it.
                 menuItemMock.classList.add("hidden");
                 if (menuItemMock.parentElement.classList.contains("atmos-select-menu-optgroup"))
                     menuItemMock.parentElement.classList.add("hidden");
+
+                this.hideHighlightRange(menuItemMock);
             }
         }
 
@@ -697,7 +724,7 @@ export default class AtmosSelect {
         });
         Redom.mount(parent, menuItemMock);
 
-        let textMock = Redom.el("span", option.textContent);
+        let textMock = Redom.el("span.atmos-select-menu-item-text", option.textContent);
         Redom.mount(menuItemMock, textMock);
 
         if (option.dataset.subtext || (this.areValuesShownAsSubtext && option.value !== option.textContent)) {
@@ -770,6 +797,48 @@ export default class AtmosSelect {
             // Immediate mode and no wait timer? Execute the function..
             if (callNow) func.apply(context, args);
         };
+    }
+
+    private adjustHighlightRange(menuItemMock: HTMLLIElement, optionText: string, optionSubtext: string, optionValue: string, valueToTestFor: string) {
+        // @ts-ignore Not yet in DOM typings.
+        if (!CSS.highlights) return;
+
+        this.createOrModifyHighlightRange(
+            menuItemMock.querySelector(".atmos-select-menu-item-text").childNodes[0] as Text,
+            optionText,
+            valueToTestFor);
+        if ((optionSubtext && optionSubtext !== optionText) || optionValue !== optionText) {
+            this.createOrModifyHighlightRange(
+                menuItemMock.querySelector(".atmos-select-menu-item-value").childNodes[0] as Text,
+                optionSubtext || optionValue,
+                valueToTestFor);
+        }
+    }
+
+    private createOrModifyHighlightRange(textNode: Text, optionText: string, value: string) {
+        if (!textNode.highlightRange) {
+            textNode.highlightRange = new Range();
+        }
+
+        let start = optionText.indexOf(value);
+        if (start >= 0) {
+            textNode.highlightRange.setStart(textNode, start);
+            textNode.highlightRange.setEnd(textNode, start + value.length);
+            AtmosSelect.customHighlight.add(textNode.highlightRange);
+        } else {
+            AtmosSelect.customHighlight.delete(textNode.highlightRange);
+        }
+    }
+
+    private hideHighlightRange(menuItemMock: HTMLLIElement) {
+        // @ts-ignore Not yet in DOM typings.
+        if (!CSS.highlights) return;
+
+        let range = (<Text>menuItemMock.querySelector(".atmos-select-menu-item-text").childNodes[0])?.highlightRange;
+        if (range) AtmosSelect.customHighlight.delete(range);
+
+        range = (<Text>menuItemMock.querySelector(".atmos-select-menu-item-value")?.childNodes[0])?.highlightRange;
+        if (range) AtmosSelect.customHighlight.delete(range);
     }
 }
 

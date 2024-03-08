@@ -5,3 +5,7 @@ interface HTMLOptionElement {
 interface HTMLLIElement {
     selectOption: HTMLOptionElement;
 }
+
+interface Text {
+    highlightRange: Range;
+}

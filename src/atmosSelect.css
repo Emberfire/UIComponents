@@ -95,3 +95,8 @@
 .atmos-select-menu-item:not(.selected) .atmos-select-menu-item-tick {
     visibility: hidden;
 }
+
+::highlight(atmos-select-highlight) {
+    background-color: #FEE6B1;
+    color: black;
+}
