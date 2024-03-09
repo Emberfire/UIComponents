@@ -13,6 +13,8 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    background-color: #282828;
+    color: #c2c2c2;
 }
 
 label {
@@ -23,6 +25,35 @@ label {
 .wrapper {
     display: block;
     position: relative;
+}
+
+.atmos-select-button {
+    background-color: #505050;
+    color: #e9e9e9;
+}
+
+.atmos-select-menu {
+    background-color: #3c3c3c;
+}
+
+.atmos-select-menu-control {
+    background-color: #3c3c3c;
+
+    input {
+        background-color: #505050;
+    }
+}
+.atmos-select-menu-item.selected {
+    background-color: #505050;
+}
+
+.atmos-select-menu-item:not(.disabled):not(.selected):hover {
+    background-color: #454545;
+}
+
+
+.atmos-select-menu-item-value {
+    color: #a7a7a7;
 }
 
 /*
