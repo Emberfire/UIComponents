@@ -533,19 +533,22 @@ export default class AtmosSelect {
         console.debug(`Update menu's options.`);
 
         for (const menuItemMock of this.menuItemMocks) {
-            // The option mock might not have a text or value because
-            // the datalist option does not have one either.
-            if (!menuItemMock.children[0].childNodes[0]) {
-                // In this case childNodes[0] will return undefined because
-                // there is no text node there. Instead, we create it here.
-                menuItemMock.children[0].insertAdjacentHTML("afterbegin", menuItemMock.selectOption.textContent);
-            } else {
-                menuItemMock.children[0].childNodes[0].textContent = menuItemMock.selectOption.textContent;
+            let itemText = menuItemMock.querySelector(".atmos-select-menu-item-text");
+            if (itemText.textContent !== menuItemMock.selectOption.textContent) {
+                // The option mock might not have a text or value because
+                // the select option does not have one either.
+                itemText.textContent = menuItemMock.selectOption.textContent;
             }
 
-            let valueSubtextElement = menuItemMock.querySelector(".atmos-select-menu-item-value");
-            if (valueSubtextElement)
-                valueSubtextElement.textContent = menuItemMock.selectOption.dataset.subtext || menuItemMock.selectOption.value;
+            let valueToTestAgainst = menuItemMock.selectOption.dataset.subtext ||
+                (itemText.textContent !==
+                menuItemMock.selectOption.value ?
+                    menuItemMock.selectOption.value :
+                    undefined);
+            let itemSubtext = menuItemMock.querySelector(".atmos-select-menu-item-value");
+            if (itemSubtext && valueToTestAgainst && itemSubtext.textContent !== valueToTestAgainst) {
+                itemSubtext.textContent = valueToTestAgainst;
+            }
 
             menuItemMock?.classList.remove("selected");
         }
@@ -729,7 +732,7 @@ export default class AtmosSelect {
 
         if (option.dataset.subtext || (this.areValuesShownAsSubtext && option.value !== option.textContent)) {
             let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.dataset.subtext || option.value);
-            Redom.mount(textMock, menuItemSubtext);
+            Redom.mount(menuItemMock, menuItemSubtext);
         }
 
         menuItemMock["selectOption"] = option;
@@ -816,6 +819,8 @@ export default class AtmosSelect {
     }
 
     private createOrModifyHighlightRange(textNode: Text, optionText: string, value: string) {
+        if (!textNode) return;
+
         if (!textNode.highlightRange) {
             textNode.highlightRange = new Range();
         }

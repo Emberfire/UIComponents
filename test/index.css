@@ -41,6 +41,7 @@ label {
 
     input {
         background-color: #505050;
+        color: #e9e9e9;
     }
 }
 .atmos-select-menu-item.selected {
