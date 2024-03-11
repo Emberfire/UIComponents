@@ -18,6 +18,7 @@ export default class AtmosSelect {
     private menuItemMocks = new Array<HTMLLIElement>();
     // @ts-ignore Not yet in DOM typings.
     private static customHighlight: Highlight;
+    private static maxHighlights = 100;
 
     constructor(selectElement: HTMLSelectElement) {
         if (AtmosSelect.selects.has(selectElement)) return;
@@ -572,7 +573,7 @@ export default class AtmosSelect {
         }
     }
 
-    private filterMenuMock(value: string) {
+    private filterMenuMock(value: string, clearHighlights = true) {
         console.debug(`Filtering menu.`);
 
         this.visibleOptions = 0;
@@ -584,9 +585,11 @@ export default class AtmosSelect {
             }
 
             this.visibleOptions = this.selectElement.children.length;
-            AtmosSelect.customHighlight?.clear();
+            if (clearHighlights) AtmosSelect.customHighlight?.clear();
             return;
         }
+
+        if (clearHighlights) AtmosSelect.customHighlight?.clear();
 
         // Iterate the available options
         for (const menuItemMock of this.menuItemMocks) {
@@ -822,36 +825,41 @@ export default class AtmosSelect {
         };
     }
 
-    private adjustHighlightRange(menuItemMock: HTMLLIElement, optionText: string, optionSubtext: string, optionValue: string, valueToTestFor: string) {
+    private adjustHighlightRange(menuItemMock: HTMLLIElement, optionText: string, optionSubtext: string, optionValue: string, valueToTestAgainst: string) {
         // @ts-ignore Not yet in DOM typings.
         if (!CSS.highlights) return;
 
-        this.createOrModifyHighlightRange(
-            menuItemMock.querySelector(".atmos-select-menu-item-text").childNodes[0] as Text,
-            optionText,
-            valueToTestFor);
-        if ((optionSubtext && optionSubtext !== optionText) || optionValue !== optionText) {
-            this.createOrModifyHighlightRange(
-                menuItemMock.querySelector(".atmos-select-menu-item-value").childNodes[0] as Text,
-                optionSubtext || optionValue,
-                valueToTestFor);
-        }
-    }
+        let start = optionText.indexOf(valueToTestAgainst);
+        if (start >= 0 && AtmosSelect.customHighlight.size < AtmosSelect.maxHighlights) {
+            if (!menuItemMock.textHighlightRange) {
+                menuItemMock.textHighlightRange = new Range();
+            }
 
-    private createOrModifyHighlightRange(textNode: Text, optionText: string, value: string) {
-        if (!textNode) return;
-
-        if (!textNode.highlightRange) {
-            textNode.highlightRange = new Range();
+            let textNode = menuItemMock.querySelector(".atmos-select-menu-item-text").childNodes[0] as Text;
+            menuItemMock.textHighlightRange.setStart(textNode, start);
+            menuItemMock.textHighlightRange.setEnd(textNode, start + valueToTestAgainst.length);
+            AtmosSelect.customHighlight.add(menuItemMock.textHighlightRange);
+        } else if (menuItemMock.textHighlightRange) {
+            AtmosSelect.customHighlight.delete(menuItemMock.textHighlightRange);
+            menuItemMock.textHighlightRange = null;
         }
 
-        let start = optionText.indexOf(value);
-        if (start >= 0) {
-            textNode.highlightRange.setStart(textNode, start);
-            textNode.highlightRange.setEnd(textNode, start + value.length);
-            AtmosSelect.customHighlight.add(textNode.highlightRange);
-        } else {
-            AtmosSelect.customHighlight.delete(textNode.highlightRange);
+        let subtext = optionSubtext || optionValue;
+        if ((subtext && subtext !== optionText) && menuItemMock.querySelector(".atmos-select-menu-item-value")) {
+            start = subtext.indexOf(valueToTestAgainst);
+            if (start >= 0 && AtmosSelect.customHighlight.size < AtmosSelect.maxHighlights) {
+                if (!menuItemMock.subtextHighlightRange) {
+                    menuItemMock.subtextHighlightRange = new Range();
+                }
+
+                let textNode = menuItemMock.querySelector(".atmos-select-menu-item-value").childNodes[0] as Text;
+                menuItemMock.subtextHighlightRange.setStart(textNode, start);
+                menuItemMock.subtextHighlightRange.setEnd(textNode, start + valueToTestAgainst.length);
+                AtmosSelect.customHighlight.add(menuItemMock.subtextHighlightRange);
+            } else if (menuItemMock.subtextHighlightRange) {
+                AtmosSelect.customHighlight.delete(menuItemMock.subtextHighlightRange);
+                menuItemMock.subtextHighlightRange = null;
+            }
         }
     }
 
@@ -859,11 +867,15 @@ export default class AtmosSelect {
         // @ts-ignore Not yet in DOM typings.
         if (!CSS.highlights) return;
 
-        let range = (<Text>menuItemMock.querySelector(".atmos-select-menu-item-text").childNodes[0])?.highlightRange;
-        if (range) AtmosSelect.customHighlight.delete(range);
+        if (menuItemMock.textHighlightRange) {
+            AtmosSelect.customHighlight.delete(menuItemMock.textHighlightRange);
+            menuItemMock.textHighlightRange = null;
+        }
 
-        range = (<Text>menuItemMock.querySelector(".atmos-select-menu-item-value")?.childNodes[0])?.highlightRange;
-        if (range) AtmosSelect.customHighlight.delete(range);
+        if (menuItemMock.subtextHighlightRange) {
+            AtmosSelect.customHighlight.delete(menuItemMock.subtextHighlightRange);
+            menuItemMock.subtextHighlightRange = null;
+        }
     }
 }
 
