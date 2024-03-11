@@ -532,12 +532,15 @@ export default class AtmosSelect {
     private updateMenuMock(selectedOptions: HTMLOptionElement[]) {
         console.debug(`Update menu's options.`);
 
+        let value = this.searchInputMock.value.trim().toLowerCase();
         for (const menuItemMock of this.menuItemMocks) {
+            let hasContentBeenUpdated = false;
             let itemText = menuItemMock.querySelector(".atmos-select-menu-item-text");
             if (itemText.textContent !== menuItemMock.selectOption.textContent) {
                 // The option mock might not have a text or value because
                 // the select option does not have one either.
                 itemText.textContent = menuItemMock.selectOption.textContent;
+                hasContentBeenUpdated = true;
             }
 
             let valueToTestAgainst = menuItemMock.selectOption.dataset.subtext ||
@@ -548,9 +551,17 @@ export default class AtmosSelect {
             let itemSubtext = menuItemMock.querySelector(".atmos-select-menu-item-value");
             if (itemSubtext && valueToTestAgainst && itemSubtext.textContent !== valueToTestAgainst) {
                 itemSubtext.textContent = valueToTestAgainst;
+                hasContentBeenUpdated = true;
             }
 
             menuItemMock?.classList.remove("selected");
+            if (hasContentBeenUpdated && value) {
+                this.adjustHighlightRange(menuItemMock,
+                    menuItemMock.selectOption.textContent.trim().toLowerCase(),
+                    menuItemMock.selectOption.dataset.subtext?.trim().toLowerCase(),
+                    menuItemMock.selectOption.value.trim().toLowerCase(),
+                    value);
+            }
         }
 
         this.selectedMenuItemMock = null;
@@ -693,7 +704,7 @@ export default class AtmosSelect {
     }
 
     private generateOptionMocks() {
-        for (const menuItemMock of this.menuMock.querySelectorAll(".atmos-select-menu-item")) {
+        for (const menuItemMock of this.menuMock.querySelectorAll(".atmos-select-menu-item,.atmos-select-menu-optgroup")) {
             menuItemMock.remove();
         }
 
@@ -752,6 +763,15 @@ export default class AtmosSelect {
 
         let selectedTickImage = Redom.el("span.atmos-select-menu-item-tick");
         Redom.mount(menuItemMock, selectedTickImage);
+
+        let value = this.searchInputMock.value.trim().toLowerCase();
+        if (value) {
+            this.adjustHighlightRange(menuItemMock,
+                option.textContent.trim().toLowerCase(),
+                option.dataset.subtext?.trim().toLowerCase(),
+                option.value.trim().toLowerCase(),
+                value);
+        }
 
         this.menuItemMocks.push(menuItemMock);
     }
