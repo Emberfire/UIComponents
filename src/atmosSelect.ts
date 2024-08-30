@@ -16,6 +16,7 @@ export default class AtmosSelect {
     private listeners: any = {};
     private visibleOptions: number = 0;
     private menuItemMocks = new Array<HTMLLIElement>();
+    private buttonMockTextElement: HTMLSpanElement;
     // @ts-ignore Not yet in DOM typings.
     private static customHighlight: Highlight;
     private static maxHighlights = 100;
@@ -29,7 +30,7 @@ export default class AtmosSelect {
         // First, generate the extra elements.
         this.generateMocks();
 
-        this.selectElement["selectButton"] = this.buttonMock;
+        this.selectElement.selectButton = this.buttonMock;
         this.buttonMock["selectElement"] = this.selectElement;
 
         // If the hidden select element somehow gets focus, move that focus to the button mock and open the menu.
@@ -144,7 +145,7 @@ export default class AtmosSelect {
                 if (firstAvailableOption) {
                     this.selectElement.selectedIndex = -1;
                     firstAvailableOption.selected = true;
-                    this.selectElement.dispatchEvent(new Event("change"));
+                    this.selectElement.dispatchEvent(new Event("change", { bubbles: true }));
 
                     if (!debounced) debounced = AtmosSelect.debounce(() => tempValue = "", 350);
                     else debounced();
@@ -219,11 +220,7 @@ export default class AtmosSelect {
             this.buttonMock.focus();
         });
 
-        // When the user clicks on any of the hidden select element's labels, focus the button mock instead.
-        this.listeners.labelClickListener = (e: MouseEvent) => {
-            e.stopPropagation();
-            this.buttonMock.focus();
-        }
+        this.listeners.labelClickListener = () => this.buttonMock.focus();
         for (const label of this.selectElement.labels) {
             label?.addEventListener("click", this.listeners.labelClickListener);
         }
@@ -252,7 +249,8 @@ export default class AtmosSelect {
         // Watch the select element's attributes for changes, mirroring their state in the input mock.
         this.selectElementAttributesChangeMutationObserver = new MutationObserver(() => {
             this.buttonMock.disabled = this.selectElement.disabled;
-            this.buttonMock.title = this.selectElement.title;
+            if (this.selectElement.title) this.buttonMock.title = this.selectElement.title;
+            else this.buttonMock.removeAttribute("title");
 
             if (this.isLiveSearchEnabled) {
                 this.searchInputMock.classList.remove("hidden");
@@ -284,6 +282,10 @@ export default class AtmosSelect {
 
     private get placeholder() {
         return this.selectElement.dataset.placeholder ?? "None selected";
+    }
+
+    private get additionalButtonHtml() {
+        return this.selectElement.dataset.buttonHtml ?? "";
     }
 
     private get hidden() {
@@ -355,6 +357,8 @@ export default class AtmosSelect {
                 }
             } else if (target.closest(".atmos-select-button") === AtmosSelect.openedSelect.buttonMock) {
                 // Don't close the menu if the user clicks on the button mock.
+                return;
+            } else if (target instanceof HTMLAnchorElement && target.href === "#" + AtmosSelect.openedSelect.selectElement.id) {
                 return;
             }
 
@@ -523,9 +527,9 @@ export default class AtmosSelect {
             if (!values.length || !values[0] === null || values[0] === undefined)
                 values[0] = this.placeholder;
 
-            this.buttonMock.children[0].textContent = values?.[0]?.toString();
+            this.buttonMockTextElement.textContent = values?.[0]?.toString();
         } else {
-            this.buttonMock.children[0].textContent =
+            this.buttonMockTextElement.textContent =
                 values.length <= 3 ? values.join(", ") || this.placeholder : `${values.length} options selected`;
         }
     }
@@ -665,20 +669,33 @@ export default class AtmosSelect {
             this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
         }
 
+        let left = buttonRect.left;
+        if (buttonRect.left + menuRect.width + 15 > window.innerWidth) {
+            // If there isn't enough space to position the menu below the button mock, position it above it instead.
+            left -= buttonRect.left + menuRect.width + 15 + window.scrollY - window.innerWidth;
+        } else {
+            // Else position the menu directly below the button element, with a little margin.
+            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
+        }
+
         console.debug(`Positioning menu to ${buttonRect.width}, ${buttonRect.left}.`);
         // Set the option menu's width to the button's width.
         this.menuMock.style.minWidth = `${buttonRect.width}px`;
-        this.menuMock.style.left = `${buttonRect.left}px`;
+        this.menuMock.style.left = `${left}px`;
 
         this.menuMock.style.removeProperty("transform");
     }
 
     private generateMocks() {
-        let buttonMock = Redom.el("button.atmos-select-button", Redom.el("span", this.placeholder), {
+        let buttonMock = Redom.el("button.atmos-select-button", {
             type: "button",
             disabled: this.selectElement.disabled,
-            title: this.selectElement.title
         }) as HTMLButtonElement;
+        this.buttonMockTextElement = Redom.el("span", this.placeholder);
+        buttonMock.append(this.buttonMockTextElement);
+        if (this.selectElement.title) buttonMock.title = this.selectElement.title;
+        if (this.additionalButtonHtml) buttonMock.insertAdjacentHTML("afterbegin", this.additionalButtonHtml);
+
         this.selectElement.insertAdjacentElement("afterend", buttonMock);
 
         this.buttonMock = buttonMock;
@@ -697,7 +714,7 @@ export default class AtmosSelect {
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
-        let searchMock = Redom.el("li.atmos-select-menu-control", Redom.el("input"));
+        let searchMock = Redom.el("li.atmos-select-menu-control", Redom.el("input", { name: "atmos-select-search" }));
         this.searchInputMock = searchMock.children[0] as HTMLInputElement;
         if (!this.isLiveSearchEnabled) this.searchInputMock.classList.add("hidden");
         Redom.mount(this.menuMock, searchMock);
@@ -710,6 +727,8 @@ export default class AtmosSelect {
         for (const menuItemMock of this.menuMock.querySelectorAll(".atmos-select-menu-item,.atmos-select-menu-optgroup")) {
             menuItemMock.remove();
         }
+
+        AtmosSelect.customHighlight?.clear();
 
         if (!this.selectElement.options?.length) {
             this.visibleOptions = 0;
@@ -736,9 +755,8 @@ export default class AtmosSelect {
 
     private generateOptionMock(parent: HTMLElement, option: HTMLOptionElement) {
         // Create an option element with its tick box, which will remain hidden until the element is selected.
-        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-select-menu-item", {
-            title: option.title
-        });
+        let menuItemMock = <HTMLLIElement>Redom.el("li.atmos-select-menu-item");
+        if (option.title) menuItemMock.title = option.title;
         Redom.mount(parent, menuItemMock);
 
         let textMock = Redom.el("span.atmos-select-menu-item-text", option.textContent);

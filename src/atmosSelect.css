@@ -96,7 +96,8 @@
     visibility: hidden;
 }
 
-::highlight(atmos-select-highlight) {
+.atmos-select-menu-item-text::highlight(atmos-select-highlight),
+.atmos-select-menu-item-value::highlight(atmos-select-highlight) {
     background-color: #FEE6B1;
     color: black;
 }
