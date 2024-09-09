@@ -220,6 +220,7 @@ export default class AtmosSelect {
             this.buttonMock.focus();
         });
 
+        // When the user clicks on any of the hidden select element's labels, focus the button mock instead.
         this.listeners.labelClickListener = () => this.buttonMock.focus();
         for (const label of this.selectElement.labels) {
             label?.addEventListener("click", this.listeners.labelClickListener);
@@ -286,6 +287,10 @@ export default class AtmosSelect {
 
     private get additionalButtonHtml() {
         return this.selectElement.dataset.buttonHtml ?? "";
+    }
+
+    private get menuPosition() {
+        return this.selectElement.dataset.menuPosition ?? "";
     }
 
     private get hidden() {
@@ -658,24 +663,34 @@ export default class AtmosSelect {
 
         if (buttonRect.bottom + menuRect.height + 15 > window.innerHeight && buttonRect.top - 15 < menuRect.height) {
             // If the menu can't be positioned either on top or bottom of the button mock,
-            // position it below the input and limit its height.
-            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
-            this.menuMock.style.height = `${window.innerHeight - buttonRect.bottom - 10}px`;
+            if (this.menuPosition === "up") {
+                // Position it above the input and limit its height.
+                this.menuMock.style.top = `${window.scrollY + 5}px`;
+                this.menuMock.style.height = `${buttonRect.top - 10}px`;
+            } else {
+                // Position it below the input and limit its height.
+                this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
+                this.menuMock.style.height = `${window.innerHeight - buttonRect.bottom - 10}px`;
+            }
         } else if (buttonRect.bottom + menuRect.height + 15 > window.innerHeight) {
             // If there isn't enough space to position the menu below the button mock, position it above it instead.
             this.menuMock.style.top = `${buttonRect.top - menuRect.height - 5 + window.scrollY}px`;
-        } else {
-            // Else position the menu directly below the button element, with a little margin.
+        } else if (this.menuPosition === "up" && buttonRect.top - 15 < menuRect.height) {
             this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
+        } else {
+            if (this.menuPosition === "up") {
+                // Else position the menu directly above the button element, with a little margin.
+                this.menuMock.style.top = `${buttonRect.top - menuRect.height - 5 + window.scrollY}px`;
+            } else {
+                // Else position the menu directly below the button element, with a little margin.
+                this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
+            }
         }
 
         let left = buttonRect.left;
         if (buttonRect.left + menuRect.width + 15 > window.innerWidth) {
-            // If there isn't enough space to position the menu below the button mock, position it above it instead.
+            // If there isn't enough space to position the menu next to the button mock, shift it slightly.
             left -= buttonRect.left + menuRect.width + 15 + window.scrollY - window.innerWidth;
-        } else {
-            // Else position the menu directly below the button element, with a little margin.
-            this.menuMock.style.top = `${buttonRect.bottom + window.scrollY + 5}px`;
         }
 
         console.debug(`Positioning menu to ${buttonRect.width}, ${buttonRect.left}.`);
