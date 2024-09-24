@@ -57,6 +57,12 @@ label {
     color: #a7a7a7;
 }
 
+.atmos-select-all-button,
+.atmos-select-none-button {
+    background-color: #505050;
+    color: #c2c2c2;
+}
+
 /*
 
 .atmos-select-button {

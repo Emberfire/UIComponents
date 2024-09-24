@@ -50,15 +50,6 @@
         grid-column: span 2;
     }
     
-    .atmos-select-all-button,
-    .atmos-select-none-button {
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-        
-        background-color: #505050;
-        color: #c2c2c2;
-    }
-    
     .atmos-select-all-button.hidden + .atmos-select-none-button {
         grid-column: span 2;
     }
