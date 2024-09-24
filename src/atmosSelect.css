@@ -84,6 +84,10 @@
 .atmos-select-menu-item-value {
     margin-left: .5rem;
     color: #808080;
+    
+    &:empty {
+        display: none;
+    }
 }
 
 .atmos-select-menu-item-tick {

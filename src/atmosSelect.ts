@@ -33,7 +33,7 @@ export default class AtmosSelect {
         this.selectElement.selectButton = this.buttonMock;
         this.buttonMock["selectElement"] = this.selectElement;
 
-        // If the hidden select element somehow gets focus, move that focus to the button mock and open the menu.
+        // If the hidden select element somehow gets focus, transfer it to the button mock and open the menu.
         this.listeners.selectElementFocusListener = () => {
             if (!selectElement.disabled) this.buttonMock.focus();
         }
@@ -119,7 +119,7 @@ export default class AtmosSelect {
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "Escape") {
-                // Close the option menu on Escape key
+                // Close the option menu on an Escape key
                 e.preventDefault();
                 this.hide();
             } else if (e.code === "Enter") {
@@ -139,9 +139,8 @@ export default class AtmosSelect {
                     return;
 
                 tempValue += e.key.toLowerCase();
-                let firstAvailableOption = [...this.selectElement.options].find(o =>
-                    o.textContent.toLowerCase().trim().includes(tempValue) ||
-                    o.value.toLowerCase().trim().includes(tempValue));
+                let firstAvailableOption =
+                    [...this.selectElement.options].find(o => o.textContent.toLowerCase().trim().includes(tempValue));
                 if (firstAvailableOption) {
                     this.selectElement.selectedIndex = -1;
                     firstAvailableOption.selected = true;
@@ -177,11 +176,8 @@ export default class AtmosSelect {
 
             if (!this.selectElement.options?.length) return;
 
-            this.updateButtonMock([...this.selectElement.selectedOptions]
-                ?.map(so =>
-                    so.textContent.trim() ||
-                    so.dataset.subtext?.trim() ||
-                    so.value.trim()));
+            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so =>
+                so.textContent.trim() || so.dataset.subtext?.trim()));
 
             this.updateMenuMock([...this.selectElement.selectedOptions]);
 
@@ -236,11 +232,8 @@ export default class AtmosSelect {
                 [...this.selectElement.options].some(o => !o.selectMenuOption)) {
                 this.generateOptionMocks();
 
-                this.updateButtonMock([...this.selectElement.selectedOptions]
-                    ?.map(so =>
-                        so.textContent.trim() ||
-                        so.dataset.subtext?.trim() ||
-                        so.value.trim()));
+                this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so =>
+                    so.textContent.trim() || so.dataset.subtext?.trim()));
             }
         });
         this.optionsChangeMutationObserver.observe(selectElement, {
@@ -275,10 +268,6 @@ export default class AtmosSelect {
 
     private get isHiddenLiveSearchEnabled() {
         return this.selectElement.dataset?.hiddenLiveSearch !== "false";
-    }
-
-    private get areValuesShownAsSubtext() {
-        return this.selectElement.dataset.showValuesAsSubtext === "true";
     }
 
     private get placeholder() {
@@ -347,7 +336,7 @@ export default class AtmosSelect {
 
             let target = e.target as HTMLElement;
             if (target.closest(".atmos-select-menu") === AtmosSelect.openedSelect.menuMock) {
-                // Don't close the menu if the user clicks inside of it.
+                // Don't close the menu if the user clicks inside it.
 
                 if (target.closest(".atmos-select-menu-item.disabled")) {
                     // Don't close the menu if the user clicks on a disabled option.
@@ -370,7 +359,7 @@ export default class AtmosSelect {
             AtmosSelect.openedSelect.hide();
         });
 
-        // Reposition the menu mock when the user resizes the container in any way (for example Ctrl+Scroll).
+        // Reposition the menu mock when the user resizes the container in any way (for example, Ctrl+Scroll).
         window.addEventListener("resize", () => {
             if (!AtmosSelect.openedSelect) return;
 
@@ -425,7 +414,7 @@ export default class AtmosSelect {
     show() {
         if (!this.visibleOptions && !this.isLiveSearchEnabled) return;
 
-        // First hide other menu mocks, since only one needs to be shown at one time.
+        // First, hide other menu mocks, since only one needs to be shown at one time.
         if (!AtmosSelect.openedSelect?.hidden) AtmosSelect.openedSelect?.hide();
 
         this.menuMock.classList.remove("hidden");
@@ -439,7 +428,7 @@ export default class AtmosSelect {
         if (!this.visibleOptions && this.hidden && !this.isLiveSearchEnabled) return;
 
         if (this.hidden) {
-            // First hide other menu mocks, since only one needs to be shown at one time.
+            // First, hide other menu mocks, since only one needs to be shown at one time.
             if (!AtmosSelect.openedSelect?.hidden) AtmosSelect.openedSelect?.hide();
         }
 
@@ -473,7 +462,7 @@ export default class AtmosSelect {
             [...this.selectElement.options].some(o => !o.selectMenuOption)) {
             // If an option count or swap has been detected, manually regenerate all option mocks
             // without waiting for the dedicated mutation observer to fire. The observer then
-            // checks for the same conditions in order to prevent double regeneration.
+            // checks for the same conditions to prevent double regeneration.
             this.generateOptionMocks();
         } else {
             // Else just update the selected options and text content.
@@ -481,15 +470,12 @@ export default class AtmosSelect {
         }
 
 
-        this.updateButtonMock([...this.selectElement.selectedOptions]
-            ?.map(so =>
-                so.textContent.trim() ||
-                so.dataset.subtext?.trim() ||
-                so.value.trim()));
+        this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so =>
+            so.textContent.trim() || so.dataset.subtext?.trim()));
     }
 
     destroy() {
-        // First remove all associated event listeners on elements that will remain.
+        // First, remove all associated event listeners on elements that will remain.
         // The rest of the listeners will be removed when we remove the mocks.
         this.selectElement.removeEventListener("focus", this.listeners.selectElementFocusListener);
         this.selectElement.removeEventListener("change", this.listeners.selectElementChangeListener);
@@ -557,13 +543,9 @@ export default class AtmosSelect {
                 hasContentBeenUpdated = true;
             }
 
-            let valueToTestAgainst = menuItemMock.selectOption.dataset.subtext ||
-                (itemText.textContent !==
-                menuItemMock.selectOption.value ?
-                    menuItemMock.selectOption.value :
-                    undefined);
+            let valueToTestAgainst = menuItemMock.selectOption.dataset.subtext ?? "";
             let itemSubtext = menuItemMock.querySelector(".atmos-select-menu-item-value");
-            if (itemSubtext && valueToTestAgainst && itemSubtext.textContent !== valueToTestAgainst) {
+            if (itemSubtext.textContent !== valueToTestAgainst) {
                 itemSubtext.textContent = valueToTestAgainst;
                 hasContentBeenUpdated = true;
             }
@@ -573,7 +555,6 @@ export default class AtmosSelect {
                 this.adjustHighlightRange(menuItemMock,
                     menuItemMock.selectOption.textContent.trim().toLowerCase(),
                     menuItemMock.selectOption.dataset.subtext?.trim().toLowerCase(),
-                    menuItemMock.selectOption.value.trim().toLowerCase(),
                     value);
             }
         }
@@ -591,7 +572,7 @@ export default class AtmosSelect {
 
         this.visibleOptions = 0;
 
-        // If input value is empty, show all the options.
+        // If the input value is empty, show all the options.
         if (!value) {
             for (const menuItemMock of this.menuMock.querySelectorAll(".atmos-select-menu-item.hidden")) {
                 menuItemMock.classList.remove("hidden");
@@ -608,12 +589,10 @@ export default class AtmosSelect {
         for (const menuItemMock of this.menuItemMocks) {
             // First normalize the values before comparing them.
             let normalizedOptionText = menuItemMock.selectOption.textContent.toLowerCase().trim();
-            let normalizedOptionValue = menuItemMock.selectOption.value.toLowerCase().trim();
             let normalizedOptionSubtext = menuItemMock.selectOption.dataset.subtext?.toLowerCase().trim() ?? "";
             let normalizedText = value.toLowerCase().trim();
             if (menuItemMock.selectOption.textContent === value ||
-                menuItemMock.selectOption.dataset.subtext === value ||
-                menuItemMock.selectOption.value === value) {
+                menuItemMock.selectOption.dataset.subtext === value) {
                 // Case in which we have a perfectly matching option.
                 // Show the option mock.
                 menuItemMock.classList.remove("hidden");
@@ -625,11 +604,9 @@ export default class AtmosSelect {
                 this.adjustHighlightRange(menuItemMock,
                     normalizedOptionText,
                     normalizedOptionSubtext,
-                    normalizedOptionValue,
                     normalizedText);
             } else if (normalizedOptionText.includes(normalizedText) ||
-                normalizedOptionSubtext.includes(normalizedText) ||
-                normalizedOptionValue.includes(normalizedText)) {
+                normalizedOptionSubtext.includes(normalizedText)) {
                 // Case in which we have a partially matching option.
                 menuItemMock.classList.remove("hidden");
                 if (menuItemMock.parentElement.classList.contains("atmos-select-menu-optgroup"))
@@ -640,7 +617,6 @@ export default class AtmosSelect {
                 this.adjustHighlightRange(menuItemMock,
                     normalizedOptionText,
                     normalizedOptionSubtext,
-                    normalizedOptionValue,
                     normalizedText);
             } else {
                 // Case in which we have a non-matching option and must hide it.
@@ -719,15 +695,13 @@ export default class AtmosSelect {
 
         this.buttonMock = buttonMock;
         if (this.selectElement.selectedIndex >= 0) {
-            this.updateButtonMock([...this.selectElement.selectedOptions]
-                ?.map(so =>
-                    so.textContent.trim() ||
-                    so.dataset.subtext?.trim() ||
-                    so.value.trim()));
+            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so =>
+                so.textContent.trim() ||
+                so.dataset.subtext?.trim()));
         }
 
         // Create the dropdown and insert it at the end of the body element,
-        // since if placed in an overflowing container it might become partly hidden.
+        // since if placed in an overflowing container, it might become partly hidden.
         let menuMock = Redom.el("ul.atmos-select-menu.hidden") as HTMLUListElement;
         if (this.selectElement.id) menuMock.dataset.origin = this.selectElement.id;
         Redom.mount(document.body, menuMock);
@@ -781,10 +755,8 @@ export default class AtmosSelect {
         let textMock = Redom.el("span.atmos-select-menu-item-text", option.textContent);
         Redom.mount(menuItemMock, textMock);
 
-        if (option.dataset.subtext || (this.areValuesShownAsSubtext && option.value !== option.textContent)) {
-            let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.dataset.subtext || option.value);
-            Redom.mount(menuItemMock, menuItemSubtext);
-        }
+        let menuItemSubtext = Redom.el("small.atmos-select-menu-item-value", option.dataset.subtext ?? "");
+        Redom.mount(menuItemMock, menuItemSubtext);
 
         menuItemMock["selectOption"] = option;
         option["selectMenuOption"] = menuItemMock as HTMLLIElement;
@@ -809,7 +781,6 @@ export default class AtmosSelect {
             this.adjustHighlightRange(menuItemMock,
                 option.textContent.trim().toLowerCase(),
                 option.dataset.subtext?.trim().toLowerCase(),
-                option.value.trim().toLowerCase(),
                 value);
         }
 
@@ -821,10 +792,10 @@ export default class AtmosSelect {
         wait: number = 50,
         immediate?: boolean
     ): any {
-        // 'private' variable for instance
+        // 'Private' variable for instance
         // The returned function will be able to reference this due to closure.
         // Each call to the returned function will share this common timer.
-        let timeout;
+        let timeout: number;
 
         // Calling debounce returns a new anonymous function
         return function () {
@@ -833,10 +804,10 @@ export default class AtmosSelect {
                 args = arguments;
 
             // Should the function be called now? If immediate is true
-            //   and not already in a timeout then the answer is: Yes
+            //   and not already in a timeout, then the answer is: Yes
             const callNow = immediate && !timeout;
 
-            // This is the basic debounce behaviour where you can call this
+            // This is the basic debounced behavior where you can call this
             //   function several times, but it will only execute once
             //   [before or after imposing a delay].
             //   Each time the returned function is called, the timer starts over.
@@ -850,19 +821,19 @@ export default class AtmosSelect {
 
                 // Check if the function already ran with the immediate flag
                 if (!immediate) {
-                    // Call the original function with apply
-                    // apply lets you define the 'this' object as well as the arguments
+                    // Call the original function with "apply".
+                    // Apply lets you define the 'this' object as well as the arguments
                     //    (both captured before setTimeout)
                     func.apply(context, args);
                 }
             }, wait);
 
-            // Immediate mode and no wait timer? Execute the function..
+            // Immediate mode and no wait timer? Execute the function.
             if (callNow) func.apply(context, args);
         };
     }
 
-    private adjustHighlightRange(menuItemMock: HTMLLIElement, optionText: string, optionSubtext: string, optionValue: string, valueToTestAgainst: string) {
+    private adjustHighlightRange(menuItemMock: HTMLLIElement, optionText: string, optionSubtext: string, valueToTestAgainst: string) {
         // @ts-ignore Not yet in DOM typings.
         if (!CSS.highlights) return;
 
@@ -881,9 +852,8 @@ export default class AtmosSelect {
             menuItemMock.textHighlightRange = null;
         }
 
-        let subtext = optionSubtext || optionValue;
-        if ((subtext && subtext !== optionText) && menuItemMock.querySelector(".atmos-select-menu-item-value")) {
-            start = subtext.indexOf(valueToTestAgainst);
+        if (optionSubtext && optionSubtext !== optionText) {
+            start = optionSubtext.indexOf(valueToTestAgainst);
             if (start >= 0 && AtmosSelect.customHighlight.size < AtmosSelect.maxHighlights) {
                 if (!menuItemMock.subtextHighlightRange) {
                     menuItemMock.subtextHighlightRange = new Range();
