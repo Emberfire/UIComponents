@@ -36,16 +36,32 @@
 }
 
 .atmos-select-menu-control {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .25rem;
+    
     position: sticky;
     top: -.25rem;
     background-color: white;
-}
+    padding-inline: .5rem;
+    padding-bottom: .25rem;
 
-.atmos-select-menu-control input {
-    width: 100%;
-    margin: .25rem .5rem;
+    input {
+        grid-column: span 2;
+    }
+    
+    .atmos-select-all-button,
+    .atmos-select-none-button {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        
+        background-color: #505050;
+        color: #c2c2c2;
+    }
+    
+    .atmos-select-all-button.hidden + .atmos-select-none-button {
+        grid-column: span 2;
+    }
 }
 
 .atmos-select-menu-item {

@@ -270,6 +270,10 @@ export default class AtmosSelect {
         return this.selectElement.dataset?.hiddenLiveSearch !== "false";
     }
 
+    private get areShorthandButtonsEnabled() {
+        return this.selectElement.dataset.shorthandButtons === "true";
+    }
+
     private get placeholder() {
         return this.selectElement.dataset.placeholder ?? "None selected";
     }
@@ -707,10 +711,35 @@ export default class AtmosSelect {
         Redom.mount(document.body, menuMock);
         this.menuMock = menuMock;
 
-        let searchMock = Redom.el("li.atmos-select-menu-control", Redom.el("input", { name: "atmos-select-search" }));
-        this.searchInputMock = searchMock.children[0] as HTMLInputElement;
+        let searchMock = Redom.el("li.atmos-select-menu-control") as HTMLLIElement;
+        this.searchInputMock = Redom.el("input", { name: "atmos-select-search" });
         if (!this.isLiveSearchEnabled) this.searchInputMock.classList.add("hidden");
-        Redom.mount(this.menuMock, searchMock);
+        
+        let selectAllButton = Redom.el("button.atmos-select-all-button", "Select all", {
+            type: "button",
+            onclick: () => {
+                // Select all options, except disabled ones.
+                [...this.selectElement.options].forEach(o => o.selected = !o.disabled);
+                this.selectElement.dispatchEvent(new Event("change"));
+            }
+        });
+        let selectNoneButton = Redom.el("button.atmos-select-none-button", "Select none", {
+            type: "button",
+            onclick: () => {
+                this.selectElement.selectedIndex = -1;
+                this.selectElement.dispatchEvent(new Event("change"));
+            }
+        });
+        if (!this.areShorthandButtonsEnabled) {
+            selectAllButton.classList.add("hidden");
+            selectNoneButton.classList.add("hidden");
+        }
+        
+        if (!this.selectElement.multiple) selectAllButton.classList.add("hidden");
+        
+        searchMock.append(this.searchInputMock, selectAllButton, selectNoneButton);
+        
+        this.menuMock.append(searchMock);
 
         // Generate the option elements in the dropdown
         this.generateOptionMocks();
