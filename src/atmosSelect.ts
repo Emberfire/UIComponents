@@ -60,7 +60,7 @@ export default class AtmosSelect {
 
             if (e.code === "ArrowDown") {
                 e.preventDefault();
-                if (!this.visibleOptions) return;
+                if (!this.visibleOptions || this.selectElement.multiple) return;
 
                 // If the user pressed the down arrow, search the first visible option below the currently selected one
                 // or cycle back to the first visible one.
@@ -90,7 +90,7 @@ export default class AtmosSelect {
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
-                if (!this.visibleOptions) return;
+                if (!this.visibleOptions || this.selectElement.multiple) return;
 
                 // If the user pressed the up arrow, search the first visible option above the currently selected one
                 // or cycle back to the last visible one.
