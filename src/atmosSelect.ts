@@ -720,14 +720,14 @@ export default class AtmosSelect {
             onclick: () => {
                 // Select all options, except disabled ones.
                 [...this.selectElement.options].forEach(o => o.selected = !o.disabled);
-                this.selectElement.dispatchEvent(new Event("change"));
+                this.selectElement.dispatchEvent(new Event("change", { bubbles: true }));
             }
         });
         let selectNoneButton = Redom.el("button.atmos-select-none-button", "Select none", {
             type: "button",
             onclick: () => {
                 this.selectElement.selectedIndex = -1;
-                this.selectElement.dispatchEvent(new Event("change"));
+                this.selectElement.dispatchEvent(new Event("change", { bubbles: true }));
             }
         });
         if (!this.areShorthandButtonsEnabled) {
