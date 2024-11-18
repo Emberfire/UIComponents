@@ -60,7 +60,7 @@ export default class AtmosSelect {
 
             if (e.code === "ArrowDown") {
                 e.preventDefault();
-                if (!this.visibleOptions || this.selectElement.multiple) return;
+                if (this.visibleOptions <= 1 || this.selectElement.multiple) return;
 
                 // If the user pressed the down arrow, search the first visible option below the currently selected one
                 // or cycle back to the first visible one.
@@ -75,7 +75,7 @@ export default class AtmosSelect {
                         nextOption = this.menuItemMocks[0] as HTMLLIElement
                     }
                 } while (!nextOption ||
-                (previousOption && nextOption.selectOption.textContent === previousOption.selectOption.textContent) ||
+                (previousOption && nextOption === previousOption) ||
                 nextOption.classList.contains("hidden") ||
                 nextOption.classList.contains("disabled"))
 
@@ -84,13 +84,16 @@ export default class AtmosSelect {
 
                 selectElement.dispatchEvent(new CustomEvent("change", {
                     bubbles: true,
-                    detail: { filterMenu: false }
+                    detail: {
+                        filterMenu: false,
+                        optionToSelect: nextOption
+                    }
                 }));
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
             } else if (e.code === "ArrowUp") {
                 e.preventDefault();
-                if (!this.visibleOptions || this.selectElement.multiple) return;
+                if (this.visibleOptions <= 1 || this.selectElement.multiple) return;
 
                 // If the user pressed the up arrow, search the first visible option above the currently selected one
                 // or cycle back to the last visible one.
@@ -105,7 +108,7 @@ export default class AtmosSelect {
                         nextOption = this.menuItemMocks[this.menuItemMocks.length - 1] as HTMLLIElement
                     }
                 } while (!nextOption ||
-                (previousOption && nextOption.selectOption.textContent === previousOption.selectOption.textContent) ||
+                (previousOption && nextOption === previousOption) ||
                 nextOption.classList.contains("hidden") ||
                 nextOption.classList.contains("disabled"))
 
@@ -114,7 +117,10 @@ export default class AtmosSelect {
 
                 selectElement.dispatchEvent(new CustomEvent("change", {
                     bubbles: true,
-                    detail: { filterMenu: false }
+                    detail: {
+                        filterMenu: false,
+                        optionToSelect: nextOption
+                    }
                 }));
 
                 this.selectedMenuItemMock?.scrollIntoView({ block: "nearest", });
@@ -170,14 +176,21 @@ export default class AtmosSelect {
 
         // When the select element gets its selected option changed for whatever reason,
         // also update the selected value in the select menu.
-        this.listeners.selectElementChangeListener = async () => {
+        this.listeners.selectElementChangeListener = async (e: CustomEvent) => {
             // Wait for any incomplete additions of options.
             await new Promise(resolve => requestAnimationFrame(resolve));
 
             if (!this.selectElement.options?.length) return;
 
-            this.updateButtonMock([...this.selectElement.selectedOptions]?.map(so =>
-                so.textContent.trim() || so.dataset.subtext?.trim()));
+            let optionsToSelect;
+            if (e.detail?.optionToSelect) {
+                optionsToSelect =
+                    [e.detail.optionToSelect.textContent.trim() ||e.detail.optionToSelect.dataset.subtext?.trim()];
+            } else {
+                optionsToSelect = [...this.selectElement.selectedOptions]
+                    ?.map(so => so.textContent.trim() || so.dataset.subtext?.trim())
+            }
+            this.updateButtonMock(optionsToSelect);
 
             this.updateMenuMock([...this.selectElement.selectedOptions]);
 
@@ -714,7 +727,7 @@ export default class AtmosSelect {
         let searchMock = Redom.el("li.atmos-select-menu-control") as HTMLLIElement;
         this.searchInputMock = Redom.el("input", { name: "atmos-select-search" });
         if (!this.isLiveSearchEnabled) this.searchInputMock.classList.add("hidden");
-        
+
         let selectAllButton = Redom.el("button.atmos-select-all-button", "Select all", {
             type: "button",
             onclick: () => {
@@ -734,11 +747,11 @@ export default class AtmosSelect {
             selectAllButton.classList.add("hidden");
             selectNoneButton.classList.add("hidden");
         }
-        
+
         if (!this.selectElement.multiple) selectAllButton.classList.add("hidden");
-        
+
         searchMock.append(this.searchInputMock, selectAllButton, selectNoneButton);
-        
+
         this.menuMock.append(searchMock);
 
         // Generate the option elements in the dropdown
