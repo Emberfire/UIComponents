@@ -131,6 +131,16 @@ export default class AtmosSelect {
             } else if (e.code === "Enter") {
                 // Toggle the option menu on Enter key
                 e.preventDefault();
+                if (this.hidden) {
+                    let result = this.selectElement.dispatchEvent(new CustomEvent("beforeshow.atmos-autocomplete", {
+                        detail: {
+                            filter: this.selectElement.value
+                        },
+                        cancelable: true
+                    }));
+                    if (!result) return;
+                }
+
                 this.toggle();
 
                 if (!this.hidden && this.isLiveSearchEnabled) requestAnimationFrame(() => this.searchInputMock.focus());
