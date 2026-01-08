@@ -36,7 +36,9 @@ export default class Platypicker {
     }
 
     constructor(selectElement) {
-        if (Platypicker.#selects.has(selectElement)) return;
+        if (Platypicker.#selects.has(selectElement) ||
+            !window.matchMedia("(min-width: 1025px) and (any-pointer: fine), (any-hover: hover)").matches)
+            return;
 
         if (!selectElement["mutationObserver"]) {
             // Watch the select element's attributes for changes, mirroring their state in the input mock.
