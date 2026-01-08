@@ -37,7 +37,7 @@ export default class Platypicker {
 
     constructor(selectElement) {
         if (Platypicker.#selects.has(selectElement) ||
-            !window.matchMedia("(min-width: 1025px) and (any-pointer: fine), (any-hover: hover)").matches)
+            !window.matchMedia("(any-pointer: fine), (any-hover: hover)").matches)
             return;
 
         if (!selectElement["mutationObserver"]) {
