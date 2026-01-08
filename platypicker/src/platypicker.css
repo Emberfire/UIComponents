@@ -1,3 +1,9 @@
+select[multiple][size="1"] {
+    background-image: var(--bs-form-select-bg-img), var(--bs-form-select-bg-icon, none);
+    appearance: none;
+    padding-right: 2.25rem;
+}
+
 @media (min-width: 1025px) and (any-pointer: fine), (any-hover: hover) {
     @supports selector(::picker(select)) {
         select {
@@ -122,13 +128,7 @@
             }
         }
     }
-    
-    select[multiple][size="1"] {
-        background-image: var(--bs-form-select-bg-img), var(--bs-form-select-bg-icon, none);
-        appearance: none;
-        padding-right: 2.25rem;
-    }
-    
+
     *:has(> select.platypicker) {
         anchor-scope: --platypicker;
     

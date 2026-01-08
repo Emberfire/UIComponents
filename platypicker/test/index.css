@@ -1,4 +1,4 @@
-@import "../dist/platypicker.min.css";
+@import "../src/platypicker.css";
 
 :root {
     --enter-animation-duration: .2s;
