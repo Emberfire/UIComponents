@@ -2,7 +2,7 @@ name: Publish platypicker to npm
 
 on:
   release:
-    types: [created]
+    types: [published, prereleased, created]
   workflow_dispatch:
     inputs:
       version:
