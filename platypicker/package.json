@@ -1,0 +1,11 @@
+{
+  "name": "platypicker",
+  "version": "0.0.0",
+  "private": false,
+  "main": "dist/platypicker.min.js",
+  "files": ["dist", "src"],
+  "repository": "https://github.com/Emberfire/UIComponents.git",
+  "exports": {
+    ".": "./dist/platypicker.min.js"
+  }
+}
