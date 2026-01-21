@@ -201,7 +201,7 @@ export default class Platypicker {
         this.#popover.append(this.#listControls);
 
         this.#search = document.createElement("input");
-        this.#search.classList.add("form-control");
+        this.#search.classList.add("form-control", "form-control-sm");
         this.#search.type = "search";
         this.#search.name = "platypicker-search";
         this.#search.placeholder = Platypicker.languageMap.searchPlaceholder;
@@ -211,7 +211,7 @@ export default class Platypicker {
         this.#listControls.append(this.#search);
 
         const selectAllButton = document.createElement("button");
-        selectAllButton.classList.add("btn", "btn-outline-secondary")
+        selectAllButton.classList.add("btn", "btn-outline-secondary", "btn-sm")
         selectAllButton.type = "button";
         selectAllButton.textContent = Platypicker.languageMap.selectAllButton;
         selectAllButton.addEventListener("click", () => {
@@ -229,7 +229,7 @@ export default class Platypicker {
         this.#listControls.append(selectAllButton);
 
         const selectNoneButton = document.createElement("button");
-        selectNoneButton.classList.add("btn", "btn-outline-secondary");
+        selectNoneButton.classList.add("btn", "btn-outline-secondary", "btn-sm");
         selectNoneButton.type = "button";
         selectNoneButton.textContent = Platypicker.languageMap.selectNoneButton;
         selectNoneButton.addEventListener("click", () => {

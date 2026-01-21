@@ -7,11 +7,6 @@
     "dist",
     "src"
   ],
-  "scripts": {
-    "build:js": "terser src/platypicker.js -o dist/platypicker.min.js --compress --mangle",
-    "build:css": "cleancss -o dist/platypicker.min.css src/platypicker.css",
-    "build": "npm run build:js && npm run build:css"
-  },
   "repository": "https://github.com/Emberfire/UIComponents.git",
   "exports": {
     ".": "./dist/platypicker.min.js"

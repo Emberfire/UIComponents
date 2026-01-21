@@ -16,6 +16,10 @@
             &::picker-icon {
                 display: none;
             }
+
+            &.platypicker[multiple] {
+                background-image: var(--bs-form-select-bg-img), var(--bs-form-select-bg-icon, none);
+            }
     
             & + .dropdown-menu[popover] {
                 display: revert;
@@ -34,6 +38,11 @@
                 .input-group input:not(:has(~ button:not(.d-none))) {
                     border-top-right-radius: var(--bs-border-radius);
                     border-bottom-right-radius: var(--bs-border-radius);
+
+                    &.form-control-sm {
+                        border-top-right-radius: var(--bs-border-radius-sm);
+                        border-bottom-right-radius: var(--bs-border-radius-sm);
+                    }
                 }
                 
                 .input-group input.d-none {
@@ -46,6 +55,11 @@
                     & + button.d-none + button:not(.d-none) {
                         border-top-left-radius: var(--bs-border-radius);
                         border-bottom-left-radius: var(--bs-border-radius);
+
+                        &.btn-sm {
+                            border-top-left-radius: var(--bs-border-radius-sm);
+                            border-bottom-left-radius: var(--bs-border-radius-sm);
+                        }
                     }
                 }
     
@@ -68,6 +82,10 @@
                 li:has(.dropdown-divider):not(:has(~ li .dropdown-item:not(.d-none))) /* Dividers without any trailing items */ { 
                     display: none;
                 }
+            }
+            
+            selectedcontent {
+                white-space: nowrap;
             }
         }
     }
