@@ -32,7 +32,7 @@ export default class Platypicker {
     }
 
     static get(element) {
-        return this.#selects.get(element);
+        return Platypicker.#selects.get(element);
     }
 
     constructor(selectElement) {
@@ -445,40 +445,6 @@ export default class Platypicker {
         for (const select of document.querySelectorAll("select[data-toggle=platypicker]")) {
             new Platypicker(select);
         }
-
-        // Place an observer to create a select whenever a select element with a select toggle gets added.
-        new MutationObserver(mutations => {
-            for (const mutation of mutations) {
-                for (const addedNode of mutation.addedNodes) {
-                    if (!(addedNode instanceof HTMLElement)) continue;
-
-                    let toggles = [];
-                    if (addedNode.dataset?.toggle === "platypicker") toggles.push(addedNode);
-                    toggles.push(...addedNode.querySelectorAll("[data-toggle=platypicker]"));
-
-                    for (const toggle of toggles) {
-                        if (this.#selects.has(toggle)) continue;
-
-                        new Platypicker(toggle);
-                    }
-                }
-
-                for (const removedNode of mutation.removedNodes) {
-                    if (!(removedNode instanceof HTMLElement)) continue;
-
-                    let toggles = [];
-                    if (removedNode.dataset?.toggle === "platypicker") toggles.push(removedNode);
-                    toggles.push(...removedNode.querySelectorAll("[data-toggle=platypicker]"));
-
-                    for (const toggle of toggles) {
-                        Platypicker.get(toggle)?.#destroy();
-                    }
-                }
-            }
-        }).observe(document, {
-            childList: true,
-            subtree: true
-        });
     }
 
     #destroy() {
