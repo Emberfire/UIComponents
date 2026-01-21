@@ -1,10 +1,12 @@
 @media (any-pointer: fine), (any-hover: hover) {
     *:has(> select.platypicker) {
         anchor-scope: --platypicker;
-    
+
         select.platypicker {
             anchor-name: --platypicker;
-            
+            white-space: nowrap;
+            min-width: max-content;
+
             &:not(:has(option:checked))::after {
                 content: "\00a0";
                 visibility: hidden;
@@ -13,7 +15,7 @@
             &:not([multiple]), &::picker(select) {
                 appearance: base-select !important;
             }
-    
+
             &::picker(select) {
                 display: none;
             }
@@ -25,7 +27,7 @@
             &.platypicker[multiple] {
                 background-image: var(--bs-form-select-bg-img), var(--bs-form-select-bg-icon, none);
             }
-    
+
             & + .dropdown-menu[popover] {
                 display: revert;
                 position-anchor: --platypicker;
@@ -33,13 +35,13 @@
                 left: anchor(left) !important;
                 min-width: anchor-size();
                 max-height: 30rem;
-                
+
                 transform: none !important;
-    
+
                 .input-group:not(:has(*:not(.d-none))) {
                     display: none;
                 }
-    
+
                 .input-group input:not(:has(~ button:not(.d-none))) {
                     border-top-right-radius: var(--bs-border-radius);
                     border-bottom-right-radius: var(--bs-border-radius);
@@ -49,13 +51,13 @@
                         border-bottom-right-radius: var(--bs-border-radius-sm);
                     }
                 }
-                
+
                 .input-group input.d-none {
                     & ~ button {
                         flex-grow: 1;
                         flex-basis: 50%;
                     }
-    
+
                     & + button:not(.d-none),
                     & + button.d-none + button:not(.d-none) {
                         border-top-left-radius: var(--bs-border-radius);
@@ -67,37 +69,34 @@
                         }
                     }
                 }
-    
+
                 .input-group button:not(.d-none) + button:not(.d-none) {
                     border-left-width: 0;
                 }
-    
+
                 li:has(.dropdown-item.d-none) ~ li:has(.dropdown-divider) {
                     display: none;
                 }
-    
+
                 li:has(.dropdown-item:not(.d-none)) ~ li:has(.dropdown-divider) {
                     display: revert;
                 }
-    
+
                 li:has(.dropdown-item.d-none), /* Hidden items */
                 li:has(.dropdown-header.d-none), /* Hidden headers */
                 li:has(.dropdown-divider.d-none), /* Hidden dividers */
                 li:has(.dropdown-header):not(:has(~ li .dropdown-item:not(.d-none))), /* Headers without any visible items */
-                li:has(.dropdown-divider):not(:has(~ li .dropdown-item:not(.d-none))) /* Dividers without any trailing items */ { 
+                li:has(.dropdown-divider):not(:has(~ li .dropdown-item:not(.d-none))) /* Dividers without any trailing items */
+                {
                     display: none;
                 }
             }
-            
-            selectedcontent {
-                white-space: nowrap;
-            }
         }
     }
-    
+
     .dropdown-item::highlight(platypicker-highlight),
     .dropdown-item small::highlight(platypicker-highlight) {
-        background-color: #FEE6B1;
+        background-color: #fee6b1;
         color: black;
     }
 }
