@@ -342,9 +342,6 @@ export default class Platypicker {
         for (const selectedOption of this.#select.selectedOptions) {
             selectedOption["popoverItem"].classList.add("active");
         }
-
-        if (!this.#select.selectedOptions.length)
-            this.#select.querySelector("selectedcontent").textContent = "0 selected";
     }
 
     #adjustHighlightRange(item, searchValue) {

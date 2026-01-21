@@ -4,6 +4,11 @@
     
         select.platypicker {
             anchor-name: --platypicker;
+            
+            &:not(:has(option:checked))::after {
+                content: "\00a0";
+                visibility: hidden;
+            }
 
             &:not([multiple]), &::picker(select) {
                 appearance: base-select !important;
