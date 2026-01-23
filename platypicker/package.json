@@ -11,6 +11,9 @@
   "exports": {
     ".": "./dist/platypicker.min.js"
   },
+  "dependencies": {
+    "bootstrap": "^5.3.8"
+  },
   "devDependencies": {
     "clean-css-cli": "^5.6.3",
     "terser": "^5.46.0"
