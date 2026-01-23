@@ -3,6 +3,10 @@ name: Publish platypicker to npm
 on:
   release:
     types: [published, prereleased, created]
+  workflow_run:
+    workflows: ["Create Release From Version Tag"]
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       version:

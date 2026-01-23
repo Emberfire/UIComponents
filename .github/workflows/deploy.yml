@@ -2,9 +2,13 @@
 name: Deploy static content to Pages
 
 on:
-  push:
-    branches: ["main"]
+  release:
+    types: [published, prereleased, created]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (semver, without leading v)"
+        required: true
 
 permissions:
   contents: read

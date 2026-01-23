@@ -1,0 +1,49 @@
+name: Create Release From Version Tag
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # important: fetch all tags
+
+      - name: Validate tag format
+        id: validate_tag
+        run: |
+          TAG_NAME="${GITHUB_REF_NAME}"
+          if [[ ! "${TAG_NAME}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid tag format: ${TAG_NAME}. Expected X.Y.Z"
+            exit 1
+          fi
+          echo "validated_tag=${TAG_NAME}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create GitHub label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "${{ steps.validate_tag.outputs.validated_tag }}" \
+            --color 0366d6 \
+            --description "Release version ${{ steps.validate_tag.outputs.validated_tag }}" \
+            || echo "Label already exists"
+
+      - name: Create GitHub release (published)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.validate_tag.outputs.validated_tag }}" \
+            --title "${{ steps.validate_tag.outputs.validated_tag }}" \
+            --generate-notes \
+            --draft=false \
+            --prerelease=false
