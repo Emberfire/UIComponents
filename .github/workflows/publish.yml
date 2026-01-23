@@ -1,8 +1,6 @@
 name: Publish platypicker to npm
 
 on:
-  release:
-    types: [published, prereleased, created]
   workflow_run:
     workflows: ["Create Release From Version Tag"]
     types:
@@ -18,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write  # Required for OIDC
+      id-token: write
       contents: read
 
     steps:
@@ -42,15 +40,23 @@ jobs:
         working-directory: platypicker
         run: npm test --if-present
 
-      - name: Set version from release tag or manual input
+      - name: Determine version
         working-directory: platypicker
         run: |
+          # Manual dispatch input takes priority
           if [ -n "${{ github.event.inputs.version }}" ]; then
             VERSION="${{ github.event.inputs.version }}"
+          # workflow_run trigger: use the tag from the triggering workflow
+          elif [ -n "${{ github.event.workflow_run.head_branch }}" ]; then
+            # head_branch contains 'refs/tags/1.2.3' on tag push triggers
+            REF="${{ github.event.workflow_run.head_branch }}"
+            VERSION="${REF#refs/tags/}"
           else
-            VERSION=${GITHUB_REF_NAME#v}
+            echo "Error: Could not determine version"
+            exit 1
           fi
-      
+
+          echo "Using version: $VERSION"
           npm version "$VERSION" --no-git-tag-version
 
       - name: Publish to GitHub npm registry
