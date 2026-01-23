@@ -12,38 +12,41 @@ permissions:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.set_tag.outputs.tag }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # important: fetch all tags
+          fetch-depth: 0   # ensures tags are available
 
       - name: Validate tag format
-        id: validate_tag
+        id: set_tag
         run: |
-          TAG_NAME="${GITHUB_REF_NAME}"
-          if [[ ! "${TAG_NAME}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid tag format: ${TAG_NAME}. Expected X.Y.Z"
+          TAG="${GITHUB_REF_NAME}"
+          if [[ ! "${TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid tag format: ${TAG}"
             exit 1
           fi
-          echo "validated_tag=${TAG_NAME}" >> "${GITHUB_OUTPUT}"
+          echo "Validated tag: $TAG"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub label
+      - name: Create GitHub label for version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh label create "${{ steps.validate_tag.outputs.validated_tag }}" \
+          gh label create "${{ steps.set_tag.outputs.tag }}" \
             --color 0366d6 \
-            --description "Release version ${{ steps.validate_tag.outputs.validated_tag }}" \
+            --description "Release version ${{ steps.set_tag.outputs.tag }}" \
             || echo "Label already exists"
 
       - name: Create GitHub release (published)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ steps.validate_tag.outputs.validated_tag }}" \
-            --title "${{ steps.validate_tag.outputs.validated_tag }}" \
+          gh release create "${{ steps.set_tag.outputs.tag }}" \
+            --title "${{ steps.set_tag.outputs.tag }}" \
             --generate-notes \
             --draft=false \
             --prerelease=false
