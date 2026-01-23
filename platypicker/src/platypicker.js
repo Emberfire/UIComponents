@@ -439,13 +439,17 @@ export default class Platypicker {
         }
     }
 
-    static init() {
+    static #init() {
         this.#highlight = new Highlight();
         CSS.highlights.set("platypicker-highlight", this.#highlight);
 
         for (const select of document.querySelectorAll("select[data-toggle=platypicker]")) {
             new Platypicker(select);
         }
+    }
+
+    static {
+        Platypicker.#init();
     }
 
     destroy() {
@@ -521,5 +525,3 @@ export default class Platypicker {
         };
     }
 }
-
-Platypicker.init();

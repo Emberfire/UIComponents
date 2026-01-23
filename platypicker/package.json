@@ -2,20 +2,11 @@
   "name": "platypicker",
   "version": "0.0.0",
   "private": false,
-  "main": "dist/platypicker.min.js",
-  "files": [
-    "dist",
-    "src"
-  ],
+  "type": "module",
+  "main": "src/platypicker.js",
   "repository": "https://github.com/Emberfire/UIComponents.git",
-  "exports": {
-    ".": "./dist/platypicker.min.js"
-  },
+  "types": "src/platypicker.d.ts",
   "dependencies": {
     "bootstrap": "^5.3.8"
-  },
-  "devDependencies": {
-    "clean-css-cli": "^5.6.3",
-    "terser": "^5.46.0"
   }
 }
