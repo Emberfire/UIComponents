@@ -6,6 +6,7 @@
   "main": "src/platypicker.js",
   "repository": "https://github.com/Emberfire/UIComponents.git",
   "types": "src/platypicker.d.ts",
+  "files": ["src"],
   "dependencies": {
     "bootstrap": "^5.3.8"
   }
