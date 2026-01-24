@@ -98,8 +98,8 @@
 
 
                     &.active, &:active {
-                        background-color: revert;
-                        color: revert;
+                        background-color: initial;
+                        color: initial;
 
                         &::before {
                             display: inline-block;
