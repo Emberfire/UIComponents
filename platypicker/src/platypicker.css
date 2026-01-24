@@ -95,7 +95,7 @@
                 .dropdown-item {
                     display: flex;
                     align-items: center;
-
+                    gap: .25rem;
 
                     &.active, &:active {
                         color: initial;
@@ -108,7 +108,7 @@
                             width: .25rem;
                             background: var(--bs-primary);
                             margin-left: -1.5rem;
-                            margin-right: 1.25rem;
+                            margin-right: 1rem;
                             border-radius: 50rem;
                         }
 
