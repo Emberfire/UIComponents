@@ -1,4 +1,4 @@
-@media (any-pointer: fine), (any-hover: hover) {
+/* @media (any-pointer: fine), (any-hover: hover) { */
     *:has(> select.platypicker) {
         anchor-scope: --platypicker;
 
@@ -91,7 +91,6 @@
                     display: none;
                 }
 
-                
                 .dropdown-item {
                     display: flex;
                     align-items: center;
@@ -140,4 +139,4 @@
             }
         }
     }
-}
+/* } */

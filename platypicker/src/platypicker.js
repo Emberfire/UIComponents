@@ -36,8 +36,8 @@ export default class Platypicker {
     }
 
     constructor(selectElement) {
-        if (Platypicker.#selects.has(selectElement) ||
-            !window.matchMedia("(any-pointer: fine), (any-hover: hover)").matches)
+        if (Platypicker.#selects.has(selectElement)/* ||
+            !window.matchMedia("(any-pointer: fine), (any-hover: hover)").matches*/)
             return;
 
         if (!selectElement["mutationObserver"]) {
@@ -298,7 +298,7 @@ export default class Platypicker {
         const item = document.createElement("button");
         item.classList.add("dropdown-item", "rounded-2");
         item.type = "button";
-        item.textContent = option.textContent;
+        item.innerHTML = option.innerHTML;
         if (option.title) item.title = option.title;
 
         listItem.append(item);
