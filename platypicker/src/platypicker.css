@@ -38,6 +38,11 @@
 
                 transform: none !important;
 
+                .dropup & {
+                    top: unset !important;
+                    bottom: calc(anchor(top) + .125rem) !important;
+                }
+
                 .input-group:not(:has(*:not(.d-none))) {
                     display: none;
                 }
