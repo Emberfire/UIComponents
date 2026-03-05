@@ -34,7 +34,7 @@
                 top: calc(anchor(bottom) + .125rem) !important;
                 left: anchor(left) !important;
                 min-width: anchor-size();
-                max-height: 30rem;
+                max-height: 45vh;
 
                 transform: none !important;
 
