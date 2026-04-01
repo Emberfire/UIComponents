@@ -102,10 +102,10 @@ export default class Platypicker {
             this.#isShown = this.#popover.togglePopover(!this.#isShown);
 
             // Check if the menu would overflow viewport bottom
+            this.#popover.parentElement.classList.remove("dropup");
             if (this.#isShown)
                 this.#popover.parentElement.classList.toggle("dropup",
                     this.#popover.getBoundingClientRect().bottom > window.innerHeight);
-            else this.#popover.parentElement.classList.remove("dropup");
 
             if (this.#isShown) this.#popover.querySelector("input:not(.d-none), .dropdown-item:not(.disabled, .d-none)")?.focus();
             else this.#select.focus();
